@@ -26,7 +26,6 @@ async def on_message(message):
             
     if message.content == "bruh" or message.content == "Bruh":
         await message.channel.send("Bruh")
-        await webhook.send("This is a test that this still works!")
 
 
 if __name__ == "__main__":
