@@ -13,7 +13,7 @@ class Bridge:
         if username not in self.username_cache:
             # get the UUID of the player:
             print(f"Attempt to cache username: {username}")
-            uuid_response = requests.get(config.icons["uuid_lookup_url"] + username, verify="consolidate.pem")
+            uuid_response = requests.get(config.icons["uuid_lookup_url"] + username)
             if uuid_response.status_code == 200:
                 uuid_json = uuid_response.json()
                 print(f"200. UUID: {uuid_json['id']}")
