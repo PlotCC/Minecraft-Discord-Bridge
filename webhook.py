@@ -30,53 +30,61 @@ async def main():
         print("Connecting to webhook...")
         webhook = Webhook.from_url(config.webhook["url"], session=session)
         print("Webhook connected.")
-        whb = Bridge(webhook)
+        whb = Bridge(webhook) # Create the webhook bridge object.
         
         print("Setting up regexes.")
-
-        regexes = []
+        regexes = [] # stores all the regex actions
 
         print("The following regex actions are being registered:")
 
+        # Player chatted action
         async def player_message(match):
             print("Player message, sending...")
             await whb.on_player_message(match.group(1), match.group(2))
         regexes.insert(0, regex_action(config.webhook["regex"]["player_message"], player_message, "Player message"))
         print_action(config.webhook["regex"]["player_message"], "Send messages that players send ingame to Discord.")
 
+        # Player join action
         async def player_joined(match):
             print("Player joined, sending...")
             await whb.on_player_join(match.group(1))
         regexes.insert(0, regex_action(config.webhook["regex"]["player_joined"], player_joined, "Player joined"))
         print_action(config.webhook["regex"]["player_joined"], "Send player join events to Discord.")
 
+        # Player leave action
         async def player_left(match):
             print("Player left, sending...")
             await whb.on_player_leave(match.group(1))
         regexes.insert(0, regex_action(config.webhook["regex"]["player_left"], player_left, "Player left"))
         print_action(config.webhook["regex"]["player_left"], "Send player leave events to Discord.")
 
-        print("Done regex stuff.")
+        print("Done action setup.")
 
         f = open(config.webhook["latest_log_location"])
         f.seek(0, 2)
 
-
+        # Main loop: Grab a line of the file, check if it matches any patterns. If so, run the action.
         print("Listening to log file.")
         while 1:
             line = f.readline()
             if line:
                 if line != "" and line != "\n":
+                    # For each action
                     for action in regexes:
+                        # If the action's regex matched
                         match = action.check(line)
                         if match:
+                            # Run the action.
                             await action.on_match(match)
                             break
                 elif line == "\n":
                     print("Ignored empty newline.")
             else:
+                # Seek to the end of the file. This fixes freezing if the log file is cleared and reopened.
                 f.seek(0, 2)
             
+            # Delay between checking each line. I assume 10 lines per second is more than enough?
+            # A better delay system will be set up soon, this is mostly temporary.
             time.sleep(0.1)
 
 
