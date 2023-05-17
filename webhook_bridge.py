@@ -42,12 +42,31 @@ class Bridge:
 
     # Send a player join event to discord.
     async def on_player_join(self, username:str):
-        embed = discord.Embed(color=0x00ff00, description=":inbox_tray: **" + username + "** joined the game.")
+        embed = discord.Embed(color=0x00ff00, description=f":inbox_tray: **{username}** joined the game.")
 
         await self.__send_server_message(embed=embed)
 
     # Send a player leave event to discord.
     async def on_player_leave(self, username:str):
-        embed = discord.Embed(color=0xff0000, description=":outbox_tray: **" + username + "** left the game.")
+        embed = discord.Embed(color=0xff0000, description=f":outbox_tray: **{username}** left the game.")
 
         await self.__send_server_message(embed=embed)
+    
+    # Send a server starting event to discord.
+    async def on_server_starting(self):
+        embed = discord.Embed(color=0xccdd00, description=":yellow_circle: **The server is starting up...**")
+
+        await self.__send_server_message(embed=embed)
+    
+    # Send a server starting event to discord.
+    async def on_server_started(self):
+        embed = discord.Embed(color=0x55dd55, description=":green_circle: **The server has started.**")
+
+        await self.__send_server_message(embed=embed)
+    
+    # Send a server starting event to discord.
+    async def on_server_stopping(self):
+        embed = discord.Embed(color=0xdd5555, description=":red_circle: **The server has closed.**")
+
+        await self.__send_server_message(embed=embed)
+    

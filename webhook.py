@@ -23,7 +23,7 @@ class regex_action:
             return match
 
 def print_action(regex:str, what_do:str):
-    print(f"  Regex: {regex}\n    Action: {what_do}")
+    print(f"  Regex: '{regex}'\n    Action: {what_do}")
 
 async def main():
     async with aiohttp.ClientSession() as session:
@@ -58,6 +58,27 @@ async def main():
         regexes.insert(0, regex_action(config.webhook["regex"]["player_left"], player_left, "Player left"))
         print_action(config.webhook["regex"]["player_left"], "Send player leave events to Discord.")
 
+        # Server starting action
+        async def server_starting(match):
+            print("Server starting, sending...")
+            await whb.on_server_starting();
+        regexes.insert(0, regex_action(config.webhook["regex"]["server_starting"], server_starting, "Server starting"))
+        print_action(config.webhook["regex"]["server_starting"], "Send server starting events to Discord.")
+
+        # Server started action
+        async def server_started(match):
+            print("Server started, sending...")
+            await whb.on_server_started();
+        regexes.insert(0, regex_action(config.webhook["regex"]["server_started"], server_started, "Server started"))
+        print_action(config.webhook["regex"]["server_started"], "Send server started events to Discord.")
+
+        # Server stopping action
+        async def server_stopping(match):
+            print("Server stopping, sending...")
+            await whb.on_server_stopping();
+        regexes.insert(0, regex_action(config.webhook["regex"]["server_stopping"], server_stopping, "Server stopping"))
+        print_action(config.webhook["regex"]["server_stopping"], "Send server stop events to Discord.")
+
         print("Done action setup.")
 
         f = open(config.webhook["latest_log_location"])
@@ -89,6 +110,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(main())
-    loop.close()
+    asyncio.run(main())
+    # loop = asyncio.new_event_loop()
+    # loop.run_until_complete(main())
+    # loop.close()
