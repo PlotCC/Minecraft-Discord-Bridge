@@ -100,6 +100,9 @@ async def main():
                             break
                 elif line == "\n":
                     print("Ignored empty newline.")
+                elif line == "":
+                    # Seek to the end of the file. This fixes freezing if the log file is cleared and reopened.
+                    f.seek(0, 2)
             else:
                 # Seek to the end of the file. This fixes freezing if the log file is cleared and reopened.
                 f.seek(0, 2)
