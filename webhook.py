@@ -4,6 +4,27 @@ import re
 import discord
 from discord import Webhook
 import time
+import os
+
+filesize = 0
+def need_log_reopen():
+    if not os.path.isfile(config.webhook["latest_log_location"]):
+        return False
+    new_size = os.path.getsize(config.webhook["latest_log_location"])
+    old_size = filesize
+    filesize = new_size
+
+    return new_size < old_size
+
+def open_latest_log():
+    printed = False
+    while not os.path.isfile(config.webhook["latest_log_location"]):
+        if not printed:
+            print("Waiting for latest.log to exist.")
+        printed = True
+        time.sleep(0.25)
+    
+    return open(config.webhook["latest_log_location"])
 
 from webhook_bridge import Bridge
 import config
@@ -81,7 +102,7 @@ async def main():
 
         print("Done action setup.")
 
-        f = open(config.webhook["latest_log_location"])
+        f = open_latest_log()
         f.seek(0, 2)
 
         # Main loop: Grab a line of the file, check if it matches any patterns. If so, run the action.
@@ -101,11 +122,11 @@ async def main():
                 elif line == "\n":
                     print("Ignored empty newline.")
                 elif line == "":
-                    # Seek to the end of the file. This fixes freezing if the log file is cleared and reopened.
-                    f.seek(0, 2)
+                    if need_log_reopen():
+                        f = open_latest_log()
             else:
-                # Seek to the end of the file. This fixes freezing if the log file is cleared and reopened.
-                f.seek(0, 2)
+                if need_log_reopen():
+                    f = open_latest_log()
             
             # Delay between checking each line. I assume 20 lines per second is more than enough?
             # A better delay system will be set up soon, this is mostly temporary.

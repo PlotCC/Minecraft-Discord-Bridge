@@ -14,7 +14,7 @@ webhook = dict(
         server_stopping = "^\[\d\d:\d\d:\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.MinecraftServer\]: Stopping server$", # No groups required.
     ),
     server_name = "Minecraft Server",
-    latest_log_location = "latest.log"
+    latest_log_location = "/somewhere/latest.log" # Absolute path
 )
 
 icons = dict(
