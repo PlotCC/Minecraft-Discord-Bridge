@@ -10,7 +10,7 @@ filesize = 0
 def need_log_reopen():
     global filesize
     if not os.path.isfile(config.webhook["latest_log_location"]):
-        return False
+        return True
     new_size = os.path.getsize(config.webhook["latest_log_location"])
     old_size = filesize
     filesize = new_size
