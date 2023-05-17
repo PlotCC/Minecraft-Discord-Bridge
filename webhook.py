@@ -107,9 +107,9 @@ async def main():
                 # Seek to the end of the file. This fixes freezing if the log file is cleared and reopened.
                 f.seek(0, 2)
             
-            # Delay between checking each line. I assume 10 lines per second is more than enough?
+            # Delay between checking each line. I assume 20 lines per second is more than enough?
             # A better delay system will be set up soon, this is mostly temporary.
-            time.sleep(0.1)
+            time.sleep(0.05)
 
 
 if __name__ == "__main__":
