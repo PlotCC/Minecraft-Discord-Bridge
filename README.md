@@ -24,9 +24,9 @@ Current feature list:
 
 Planned feature list:
 
-- [ ] Bot that sends messages from Discord to Minecraft.
-- [ ] Automatic Minecraft reboot (set time, daily, weekly).
-- [ ] Fancy colorations of users.
-- [ ] Discord/Minecraft user linking?
-- [ ] `/online` (alias `/list`) command to determine who is online from Discord.
-- [ ] More events detected (deaths, advancements, ...).
+- [ ] #1
+- [ ] #2
+- [ ] #3
+- [ ] #4
+- [ ] #5
+- [ ] #6
