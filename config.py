@@ -5,9 +5,7 @@ bot = dict(
 
 tmux_data = dict(
     tmux_session = "plotworld_server",
-    console_win ="console",
-    bridge_win = "bridge",
-    echo_win = "echo"
+    window_name ="console",
 )
 
 webhook = dict(

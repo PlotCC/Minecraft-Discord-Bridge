@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     # Get the main window.
     console_win = session.windows[0]
-    console_win.rename_window(config.tmux_data["console_win"])
+    console_win.rename_window(config.tmux_data["window_name"])
     # Set the layout to look fancy.
     console_win.select_layout("main-vertical")
 
@@ -30,14 +30,12 @@ if __name__ == "__main__":
 
     # Create the pane for the bridge.
     bridge_pane = console_win.split_window(attach=True)
-    bridge_pane.rename_window(config.tmux_data["bridge_win"])
 
     # Start the bridge.
     bridge_pane.send_keys(config.programs["bridge"])
 
     # Create a pane for the echo system.
     echo_pane = console_win.split_window(attach=True)
-    echo_pane.rename_window(config.tmux_data["echo_win"])
 
     # Start the echo client.
     echo_pane.send_keys(config.programs["echo"])
