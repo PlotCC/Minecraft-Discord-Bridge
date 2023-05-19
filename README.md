@@ -1,6 +1,6 @@
 # Bridge Bot
-This is a somewhat advanced bridge bot, that combines the functionality of a
-minecraft<->discord bridge with some other utilities like automatic server
+This is a somewhat advanced bridge bot that combines the functionality of a
+Minecraft <-> Discord bridge with some other utilities like automatic server
 restarts and whatnot.
 
 This opens a 3-window tmux session where one window is the debug output of the
