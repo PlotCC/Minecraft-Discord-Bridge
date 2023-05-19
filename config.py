@@ -8,7 +8,7 @@ tmux_data = dict(
     console_win ="console",
     bridge_win = "bridge",
     echo_win = "echo"
-),
+)
 
 webhook = dict(
     url = "",
