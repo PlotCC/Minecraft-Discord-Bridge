@@ -10,3 +10,4 @@ if __name__ == "__main__":
 
     while True:
         print("%s" % socket.recv())
+        socket.send(b"ACK")

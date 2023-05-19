@@ -50,6 +50,7 @@ if __name__ == "__main__":
     socket.connect(config.echo["connect"])
     def echo(*args):
         socket.send(str.encode(" ".join(args)))
+        socket.recv() # Void the acknowledgement.
     
     echo("Echo server initialized.")
 
