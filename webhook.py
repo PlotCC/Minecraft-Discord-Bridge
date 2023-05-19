@@ -21,7 +21,7 @@ def open_latest_log():
     printed = False
     while not os.path.isfile(config.webhook["latest_log_location"]):
         if not printed:
-            print("Waiting for latest.log to exist.")
+            print(f"Waiting for latest.log to exist ({config.webhook['latest_log_location']}).")
         printed = True
         time.sleep(0.25)
     
