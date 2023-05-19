@@ -1,7 +1,14 @@
 bot = dict(
     channel_id = 0,
-    token = ""
+    token = "",
 )
+
+tmux_data = dict(
+    tmux_session = "plotworld_server",
+    console_win ="console",
+    bridge_win = "bridge",
+    echo_win = "echo"
+),
 
 webhook = dict(
     url = "",
@@ -15,6 +22,17 @@ webhook = dict(
     ),
     server_name = "Minecraft Server",
     latest_log_location = "/somewhere/latest.log" # Absolute path
+)
+
+echo = dict(
+    bind = "tcp://*:9001",
+    connect = "tcp://localhost:9001"
+)
+
+programs = dict(
+    bridge = "webhook.py",
+    echo = "echo.py",
+    minecraft = "run.sh"
 )
 
 icons = dict(
