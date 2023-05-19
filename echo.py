@@ -9,5 +9,5 @@ if __name__ == "__main__":
     socket.bind(config.echo["bind"])
 
     while True:
-        print("%s" % socket.recv())
+        print(socket.recv().decode())
         socket.send(b"ACK")
