@@ -9,5 +9,11 @@ if __name__ == "__main__":
     socket.bind(config.echo["bind"])
 
     while True:
-        print(socket.recv().decode())
+        message = socket.recv().decode()
+        if message == "__close__":
+            socket.close()
+            print("Socket closed, program exiting.")
+            break
+        
+        print(message)
         socket.send(b"ACK")

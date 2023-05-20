@@ -81,3 +81,7 @@ if __name__ == "__main__":
 
     # Cleanup: Stop the tmux sessions.
     print("Dude has stopped bro")
+
+    # Close the echo server and client.
+    echo("__close__")
+    socket.close()
