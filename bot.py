@@ -71,12 +71,12 @@ if __name__ == "__main__":
             echo(f"Received message in incorrect channel.")
             return
 
-        echo(f"Received message: [{message.author.nick}]:  {message.content}")
+        echo(f"Received message: [{message.author.name}]:  {message.content}")
         a = tellraw(
             text="[Discord] "
         )
         b = tellraw(
-            text=message.author.nick
+            text=message.author.name
         )
         c = tellraw(
             text=": " + message.content
