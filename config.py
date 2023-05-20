@@ -19,7 +19,8 @@ webhook = dict(
         server_stopping = "^\[\d\d:\d\d:\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.MinecraftServer\]: Stopping server$", # No groups required.
     ),
     server_name = "Minecraft Server",
-    latest_log_location = "/somewhere/latest.log" # Absolute path
+    latest_log_location = "/somewhere/latest.log", # Absolute path
+    insertion_available = False, # If the server minecraft version supports `insertion` in tellraw commands.
 )
 
 echo = dict(

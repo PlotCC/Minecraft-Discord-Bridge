@@ -81,7 +81,7 @@ if __name__ == "__main__":
         b = tellraw(
             text="Discord",
             color="blue",
-            hover="This message was sent from Discord!",
+            hover=tellraw(text="This message was sent from Discord!", color="light_purple"),
             bold=True
         )
         c = tellraw(
@@ -90,8 +90,11 @@ if __name__ == "__main__":
         d = tellraw(
             text=message.author.display_name,
             insertion="<@" + str(message.author.id) + "> ",
-            hover=tellraw(text="Click to reply!", color="light_purple")
         )
+        if config.webhook["insertion_available"]:
+            d.hover = tellraw(text="Click to reply!", color="yellow")
+        else:
+            d.hover = tellraw(text=message.author.mention, color="yellow")
         e = tellraw(
             text=": " + message.content
         )
