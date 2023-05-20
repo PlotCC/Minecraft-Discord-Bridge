@@ -11,9 +11,10 @@ if __name__ == "__main__":
     while True:
         message = socket.recv().decode()
         if message == "__close__":
+            socket.send(b"ACK")
             socket.close()
             print("Socket closed, program exiting.")
             break
-        
+
         print(message)
         socket.send(b"ACK")
