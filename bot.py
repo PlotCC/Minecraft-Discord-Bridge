@@ -126,7 +126,7 @@ if __name__ == "__main__":
         echo(f"After : {after.content}")
 
         a = tellraw(
-            text = "["
+            text="["
         )
         b = tellraw(
             text="Discord",
@@ -135,31 +135,24 @@ if __name__ == "__main__":
             bold=True
         )
         c = tellraw(
-            text = "] [EDIT - OLD]"
+            text="] "
         )
-        d = None
-        if config.webhook["insertion_available"]:
-            d = tellraw(
-                text=before.author.display_name,
-                insertion="<@" + str(before.author.id) + "> ",
-                hover=tellraw(text="Click to reply!", color="yellow"),
-                color="dark_gray"
-            )
-        else:
-            d = tellraw(
-                text=before.author.display_name,
-                insertion="<@" + str(before.author.id) + "> ",
-                hover=tellraw(text=before.author.mention, color="yellow"),
-                color="dark_gray"
-            )
-        
+        d = tellraw(
+            text="[EDIT - OLD] ",
+            color="dark_gray"
+        )
         e = tellraw(
+            text=before.author.display_name,
+            color="dark_gray"
+        )
+        
+        f = tellraw(
             text=": " + before.content,
             hover=tellraw(text="This is an edit of a previous message."),
             color="dark_gray"
         )
 
-        combined = tellraw.multiple_tellraw(a, b, c, d, e)
+        combined = tellraw.multiple_tellraw(a, b, c, d, e, f)
         console_pane.send_keys("tellraw @a " + combined)
         echo(f"Tellraw sent to server: {combined}")
 
@@ -173,27 +166,23 @@ if __name__ == "__main__":
             bold=True
         )
         c = tellraw(
-            text = "] [EDIT - NEW]"
+            text="] "
         )
-        d = None
-        if config.webhook["insertion_available"]:
-            d = tellraw(
-                text=after.author.display_name,
-                insertion="<@" + str(after.author.id) + "> ",
-                hover=tellraw(text="Click to reply!", color="yellow"),
-            )
-        else:
-            d = tellraw(
-                text=after.author.display_name,
-                insertion="<@" + str(after.author.id) + "> ",
-                hover=tellraw(text=after.author.mention, color="yellow"),
-            )
-        
+        d = tellraw(
+            text="[EDIT - NEW] ",
+            color="gold"
+        )
         e = tellraw(
+            text=after.author.display_name,
+            color="gold"
+        )
+        
+        f = tellraw(
             text=": ",
+            color="gold"
         )
 
-        f = tellraw(
+        g = tellraw(
             text=after.content,
             color="gold"
         )
