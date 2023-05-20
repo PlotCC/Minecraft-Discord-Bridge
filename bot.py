@@ -125,6 +125,43 @@ if __name__ == "__main__":
         echo(f"Before: {before.content}")
         echo(f"After : {after.content}")
 
+        a = tellraw(
+            text = "["
+        )
+        b = tellraw(
+            text="Discord",
+            color="blue",
+            hover=tellraw(text="This message was sent from Discord!", color="light_purple"),
+            bold=True
+        )
+        c = tellraw(
+            text = "] "
+        )
+        d = None
+        if config.webhook["insertion_available"]:
+            d = tellraw(
+                text=after.author.display_name,
+                insertion="<@" + str(after.author.id) + "> ",
+                hover=tellraw(text="Click to reply!", color="yellow"),
+                color="dark_gray"
+            )
+        else:
+            d = tellraw(
+                text=after.author.display_name,
+                insertion="<@" + str(after.author.id) + "> ",
+                hover=tellraw(text=after.author.mention, color="yellow"),
+                color="dark_gray"
+            )
+        
+        e = tellraw(
+            text="[EDIT]: " + after.content,
+            hover=tellraw(text="This is an edit of a previous message."),
+            color="dark_gray"
+        )
+
+        combined = tellraw.multiple_tellraw(a, b, c, d, e)
+        console_pane.send_keys("tellraw @a " + combined)
+        echo(f"Tellraw sent to server: {combined}")
         
 
     # Start the minecraft server.
