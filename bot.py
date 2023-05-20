@@ -139,17 +139,20 @@ if __name__ == "__main__":
         )
         d = tellraw(
             text="[EDIT - OLD] ",
-            color="dark_gray"
+            color="dark_gray",
+            italic=True
         )
         e = tellraw(
             text=before.author.display_name,
-            color="dark_gray"
+            color="dark_gray",
+            italic=True
         )
         
         f = tellraw(
             text=": " + before.content,
             hover=tellraw(text="This is an edit of a previous message."),
-            color="dark_gray"
+            color="dark_gray",
+            italic=True
         )
 
         combined = tellraw.multiple_tellraw(a, b, c, d, e, f)
