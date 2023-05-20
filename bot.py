@@ -67,33 +67,54 @@ if __name__ == "__main__":
         if message.author == client.user:
             return
         
-        if message.bot:
+        if message.author.bot:
             return
                 
         if message.channel.id != config.bot["channel_id"]:
             echo(f"Received message in incorrect channel.")
             return
 
-        echo(f"Received message: [{message.author.name}]: {message.content}")
+        echo(f"Received message: [{message.author.display_name}]: {message.content}")
         a = tellraw(
-            text="[Discord] "
+            text = "["
         )
         b = tellraw(
-            text=message.author.name
+            text="Discord",
+            color="blue",
+            hover=tellraw(text="This message was sent from Discord!", color="light_purple"),
+            bold=True
         )
         c = tellraw(
+            text = "] "
+        )
+        d = None
+        if config.webhook["insertion_available"]:
+            d = tellraw(
+                text=message.author.display_name,
+                insertion="<@" + str(message.author.id) + "> ",
+                hover=tellraw(text="Click to reply!", color="yellow")
+            )
+            
+        else:
+            d = tellraw(
+                text=message.author.display_name,
+                insertion="<@" + str(message.author.id) + "> ",
+                hover=tellraw(text=message.author.mention, color="yellow")
+            )
+        e = tellraw(
             text=": " + message.content
         )
 
-        combined = tellraw.multiple_tellraw(a, b, c)
+        combined = tellraw.multiple_tellraw(a, b, c, d, e)
         console_pane.send_keys("tellraw @a " + combined)
+        echo(f"Tellraw sent to server: {combined}")
     
     @client.event
     async def on_message_edit(before, after):
         if before.author == client.user:
             return
         
-        if before.bot:
+        if before.author.bot:
             return
         
         if before.channel.id != config.bot["channel_id"]:
@@ -104,6 +125,74 @@ if __name__ == "__main__":
         echo(f"Before: {before.content}")
         echo(f"After : {after.content}")
 
+        a = tellraw(
+            text="["
+        )
+        b = tellraw(
+            text="Discord",
+            color="blue",
+            hover=tellraw(text="This message was sent from Discord!", color="light_purple"),
+            bold=True
+        )
+        c = tellraw(
+            text="] "
+        )
+        d = tellraw(
+            text="[EDIT - OLD] ",
+            color="dark_gray",
+            italic=True
+        )
+        e = tellraw(
+            text=before.author.display_name,
+            color="dark_gray",
+            italic=True
+        )
+        
+        f = tellraw(
+            text=": " + before.content,
+            hover=tellraw(text="This is an edit of a previous message."),
+            color="dark_gray",
+            italic=True
+        )
+
+        combined = tellraw.multiple_tellraw(a, b, c, d, e, f)
+        console_pane.send_keys("tellraw @a " + combined)
+        echo(f"Tellraw sent to server: {combined}")
+
+        a = tellraw(
+            text = "["
+        )
+        b = tellraw(
+            text="Discord",
+            color="blue",
+            hover=tellraw(text="This message was sent from Discord!", color="light_purple"),
+            bold=True
+        )
+        c = tellraw(
+            text="] "
+        )
+        d = tellraw(
+            text="[EDIT - NEW] ",
+            color="gold"
+        )
+        e = tellraw(
+            text=after.author.display_name,
+            color="gold"
+        )
+        
+        f = tellraw(
+            text=": ",
+            color="gold"
+        )
+
+        g = tellraw(
+            text=after.content,
+            color="gold"
+        )
+
+        combined = tellraw.multiple_tellraw(a, b, c, d, e, f, g)
+        console_pane.send_keys("tellraw @a " + combined)
+        echo(f"Tellraw sent to server: {combined}")
         
 
     # Start the minecraft server.
