@@ -89,7 +89,7 @@ if __name__ == "__main__":
         )
         d = tellraw(
             text=message.author.display_name,
-            insertion="<@" + message.author.id + "> ",
+            insertion="<@" + str(message.author.id) + "> ",
             hover="Click to reply!"
         )
         e = tellraw(
