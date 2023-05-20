@@ -1,14 +1,6 @@
-import schedule
-
 bot = dict(
     channel_id = 0,
     token = "",
-)
-
-server = dict(
-    restart_schedule = schedule.every().day.at("00:00:00"), # Any schedule will work.
-    do_automatic_restart = True,
-    restart_time = 3600 # One hour.
 )
 
 tmux_data = dict(
