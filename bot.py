@@ -66,12 +66,15 @@ if __name__ == "__main__":
     async def on_message(message):
         if message.author == client.user:
             return
+        
+        if message.bot:
+            return
                 
         if message.channel.id != config.bot["channel_id"]:
             echo(f"Received message in incorrect channel.")
             return
 
-        echo(f"Received message: [{message.author.name}]:  {message.content}")
+        echo(f"Received message: [{message.author.name}]: {message.content}")
         a = tellraw(
             text="[Discord] "
         )
@@ -88,6 +91,9 @@ if __name__ == "__main__":
     @client.event
     async def on_message_edit(before, after):
         if before.author == client.user:
+            return
+        
+        if before.bot:
             return
         
         if before.channel.id != config.bot["channel_id"]:
