@@ -187,7 +187,7 @@ if __name__ == "__main__":
             color="gold"
         )
 
-        combined = tellraw.multiple_tellraw(a, b, c, d, e, f)
+        combined = tellraw.multiple_tellraw(a, b, c, d, e, f, g)
         console_pane.send_keys("tellraw @a " + combined)
         echo(f"Tellraw sent to server: {combined}")
         
