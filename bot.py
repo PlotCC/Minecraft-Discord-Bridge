@@ -4,6 +4,7 @@ import discord
 import libtmux
 import zmq
 import time
+from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
 import config
 
@@ -63,15 +64,41 @@ if __name__ == "__main__":
 
     @client.event
     async def on_message(message):
-        print(f"Received message: {message}")
         if message.author == client.user:
             return
                 
         if message.channel.id != config.bot["channel_id"]:
+            echo(f"Received message in incorrect channel.")
             return
-                
-        if message.content == "bruh" or message.content == "Bruh":
-            await message.channel.send("Bruh")
+
+        echo(f"Received message: [{message.author.nick}]:  {message.content}")
+        a = tellraw(
+            text="[Discord] "
+        )
+        b = tellraw(
+            text=message.author.nick
+        )
+        c = tellraw(
+            text=": " + message.content
+        )
+
+        combined = tellraw.multiple_tellraw(a, b, c)
+        console_pane.send_keys(combined)
+    
+    @client.event
+    async def on_message_edit(before, after):
+        if before.author == client.user:
+            return
+        
+        if before.channel.id != config.bot["channel_id"]:
+            echo(f"Received edit in incorrect channel.")
+            return
+        
+        echo(f"Edit detected.")
+        echo(f"Before: {before.content}")
+        echo(f"After : {after.content}")
+
+        
 
     # Start the minecraft server.
     console_pane.send_keys(config.programs["minecraft"])
