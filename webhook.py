@@ -19,13 +19,14 @@ def need_log_reopen():
 
 def open_latest_log():
     printed = False
-    while not os.path.isfile(config.webhook["latest_log_location"]):
+    lll = config.webhook["latest_log_location"]
+    while not os.path.isfile(lll):
         if not printed:
-            print(f"Waiting for latest.log to exist ({config.webhook['latest_log_location']}).")
+            print(f"Waiting for latest.log to exist ({lll}).")
         printed = True
-        time.sleep(0.25)
+        time.sleep(0.1)
     
-    return open(config.webhook["latest_log_location"])
+    return open(lll)
 
 from webhook_bridge import Bridge
 import config
@@ -107,19 +108,24 @@ async def main():
         f.seek(0, 2)
 
         # Main loop: Grab a line of the file, check if it matches any patterns. If so, run the action.
-        print("Listening to log file.")
-        while 1:
+        print(f"Listening to log file {config.webhook['latest_log_location']}.")
+        while True:
             line = f.readline()
             if line:
                 if line != "" and line != "\n":
+                    print(line)
+                    matched = False
                     # For each action
                     for action in regexes:
                         # If the action's regex matched
                         match = action.check(line)
                         if match:
                             # Run the action.
+                            matched = True
                             await action.on_match(match)
                             break
+                    if not matched:
+                        print("No match.")
                 elif line == "\n":
                     print("Ignored empty newline.")
                 elif line == "":
