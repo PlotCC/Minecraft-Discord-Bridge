@@ -74,19 +74,31 @@ if __name__ == "__main__":
             echo(f"Received message in incorrect channel.")
             return
 
-        echo(f"Received message: [{message.author.name}]: {message.content}")
+        echo(f"Received message: [{message.author.display_name}]: {message.content}")
         a = tellraw(
-            text="[Discord] "
+            text = "["
         )
         b = tellraw(
-            text=message.author.name
+            text="Discord",
+            color="blue"
+            hover="This message was sent from Discord!"
+            bold=True
         )
         c = tellraw(
+            text = "] "
+        )
+        d = tellraw(
+            text=message.author.display_name,
+            insertion="<@" + message.author.id + "> ",
+            hover="Click to reply!"
+        )
+        e = tellraw(
             text=": " + message.content
         )
 
-        combined = tellraw.multiple_tellraw(a, b, c)
+        combined = tellraw.multiple_tellraw(a, b, c, d, e)
         console_pane.send_keys("tellraw @a " + combined)
+        echo(f"Tellraw sent to server: {combined}")
     
     @client.event
     async def on_message_edit(before, after):
