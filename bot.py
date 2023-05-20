@@ -80,8 +80,8 @@ if __name__ == "__main__":
         )
         b = tellraw(
             text="Discord",
-            color="blue"
-            hover="This message was sent from Discord!"
+            color="blue",
+            hover="This message was sent from Discord!",
             bold=True
         )
         c = tellraw(
