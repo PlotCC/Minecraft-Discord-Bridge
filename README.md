@@ -33,5 +33,5 @@ Planned feature list:
 
 ## Python pip modules installation string
 ```
-pip install -U discord.py libtmux zmq time minecraftTellrawGenerator asyncio aiohttp re requests
+pip install -U discord.py libtmux zmq minecraftTellrawGenerator asyncio aiohttp requests
 ```
