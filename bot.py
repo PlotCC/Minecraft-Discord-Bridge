@@ -205,14 +205,12 @@ if __name__ == "__main__":
         console_pane.send_keys("tellraw @a " + combined)
         echo(f"Tellraw sent to server: {combined}")
 
-    loop = asyncio.get_event_loop()
-
     async def run_bot():
         try:
             await client.run(config.bot["token"])
         except Exception as e:
             await client.close()
-            echo("Error occurred!")
+            await echo("Error occurred!")
     
     def get_time_string(time_left:int):
         hours = time_left / 3600
@@ -292,7 +290,7 @@ if __name__ == "__main__":
             time.sleep(1)
 
     async def thread_run():
-        asyncio.run_coroutine_threadsafe(scheduler(), loop)
+        asyncio.run_coroutine_threadsafe(scheduler())
 
     async def main():
         await asyncio.gather(
@@ -305,7 +303,7 @@ if __name__ == "__main__":
     server_lock = False
 
     # Run the bot.
-    loop.run_until_complete(main())
+    asyncio.run(main())
 
     # Cleanup: Stop the tmux sessions.
     print("Dude has stopped bro")
