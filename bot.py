@@ -87,14 +87,20 @@ if __name__ == "__main__":
         c = tellraw(
             text = "] "
         )
-        d = tellraw(
-            text=message.author.display_name,
-            insertion="<@" + str(message.author.id) + "> ",
-        )
+        d = None
         if config.webhook["insertion_available"]:
-            d.hover = tellraw(text="Click to reply!", color="yellow")
+            d = tellraw(
+                text=message.author.display_name,
+                insertion="<@" + str(message.author.id) + "> ",
+                hover=tellraw(text="Click to reply!", color="yellow")
+            )
+            
         else:
-            d.hover = tellraw(text=message.author.mention, color="yellow")
+            d = tellraw(
+                text=message.author.display_name,
+                insertion="<@" + str(message.author.id) + "> ",
+                hover=tellraw(text=message.author.mention, color="yellow")
+            )
         e = tellraw(
             text=": " + message.content
         )
