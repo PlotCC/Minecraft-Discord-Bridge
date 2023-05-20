@@ -67,7 +67,7 @@ if __name__ == "__main__":
         if message.author == client.user:
             return
         
-        if message.bot:
+        if message.author.bot:
             return
                 
         if message.channel.id != config.bot["channel_id"]:
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         if before.author == client.user:
             return
         
-        if before.bot:
+        if before.author.bot:
             return
         
         if before.channel.id != config.bot["channel_id"]:
