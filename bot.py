@@ -83,7 +83,7 @@ if __name__ == "__main__":
         )
 
         combined = tellraw.multiple_tellraw(a, b, c)
-        console_pane.send_keys(combined)
+        console_pane.send_keys("tellraw @a " + combined)
     
     @client.event
     async def on_message_edit(before, after):
