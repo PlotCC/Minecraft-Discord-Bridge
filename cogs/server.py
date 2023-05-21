@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands, tasks
 from discord import app_commands
 import time
@@ -18,7 +19,7 @@ class ServerCog(commands.Cog):
 
     group = app_commands.Group(name="minecraft", description="Minecraft server controls.")
 
-    @group.command(name="shutdown", description="Shut down the Minecraft server.")
+    @app_commands.command(name="shutdown", description="Shut down the Minecraft server.")
     @commands.guild_only()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.cooldown(1, 180)
@@ -31,7 +32,7 @@ class ServerCog(commands.Cog):
         else:
             ctx.send("Server is not currently running.", ephemeral=True)
 
-    @group.command(name="startup", description="Start up the Minecraft server.")
+    @app_commands.command(name="startup", description="Start up the Minecraft server.")
     @commands.guild_only()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.cooldown(1, 180)
@@ -42,7 +43,7 @@ class ServerCog(commands.Cog):
         else:
             ctx.send("Server is currently running.", ephemeral=True)
 
-    @group.command(name="reboot-schedule", description="Display the automatic restart schedule of the Minecraft server.")
+    @app_commands.command(name="reboot-schedule", description="Display the automatic restart schedule of the Minecraft server.")
     @commands.guild_only()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     async def reboot_schedule(self, ctx):
@@ -56,4 +57,4 @@ class ServerCog(commands.Cog):
         await self.startup()
     
 async def setup(bot):
-    await bot.add_cog(ServerCog(bot))
+    await bot.add_cog(ServerCog(bot), guilds=[discord.Object(id=753756684534546442)])
