@@ -1,6 +1,13 @@
+import datetime
+
 bot = dict(
     channel_id = 0,
     token = "",
+)
+
+server = dict(
+    do_automatic_restart = True,
+    restart_time = datetime.time(hour=6, minute=0, second=0)
 )
 
 tmux_data = dict(
