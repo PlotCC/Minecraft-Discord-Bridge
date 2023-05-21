@@ -21,7 +21,8 @@ intents.message_content = True
 async def startup():
     # Initialize the bot
     bot = commands.Bot(
-        intents=intents
+        intents=intents,
+        command_prefix=commands.when_mentioned
     )
 
     # Get the tmux server object.
