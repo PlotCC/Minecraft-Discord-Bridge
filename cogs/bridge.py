@@ -139,5 +139,5 @@ class BridgeCog(commands.Cog):
         self.bot.console_pane.send_keys("tellraw @a " + combined)
         self.bot.echo(f"Tellraw sent to server: {combined}")
     
-    async def setup(bot):
-        await bot.add_cog(BridgeCog(bot))
+async def setup(bot):
+    await bot.add_cog(BridgeCog(bot))

@@ -55,5 +55,5 @@ class ServerCog(commands.Cog):
         await time.sleep(60)
         await self.startup()
     
-    async def setup(bot):
-        await bot.add_cog(ServerCog(bot))
+async def setup(bot):
+    await bot.add_cog(ServerCog(bot))
