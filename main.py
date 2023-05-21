@@ -4,8 +4,6 @@ import logging
 import discord
 import pathlib
 import libtmux
-import time
-import zmq
 from discord.ext import commands
 
 import config
@@ -46,26 +44,6 @@ async def startup():
     # Start the bridge.
     bot.bridge_pane.send_keys(config.programs["bridge"])
 
-    # Create a pane for the echo system.
-    bot.echo_pane = console_win.split_window(attach=True)
-
-    # Start the echo client.
-    bot.echo_pane.send_keys(config.programs["echo"])
-
-    # The echo program should be running, though we'll give it a bit to start just to be sure.
-    print("Waiting for echo to be ready (5 seconds).")
-    time.sleep(5)
-
-    # Connect to the echo server.
-    context = zmq.Context()
-    socket = context.socket(zmq.REQ)
-    socket.connect(config.echo["connect"])
-    def echo(*args):
-        socket.send(str.encode(" ".join(args)))
-        socket.recv() # Void the acknowledgement.
-    bot.echo = echo
-    echo("Echo server initialized.")
-
     async with bot:
         # Collect cogs and load them.
         for extension in [f.replace(".py","") for f in os.listdir(f"{BOT_SRC}/cogs") if os.path.isfile(os.path.join(f"{BOT_SRC}/cogs",f))]:
@@ -78,9 +56,8 @@ async def startup():
                 LOG.info(f"Successfully loaded {extension}.")
         
         # Start the bot
+        LOG.info("Starting bot.")
         await bot.start(config.bot["token"])
-        echo("__close__")
-        socket.close()
 
 if __name__ == "__main__":
     asyncio.run(startup())

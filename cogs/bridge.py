@@ -16,10 +16,8 @@ class BridgeCog(commands.Cog):
             return
                 
         if message.channel.id != config.bot["channel_id"]:
-            self.bot.echo(f"Received message in incorrect channel.")
             return
 
-        self.bot.echo(f"Received message: [{message.author.display_name}]: {message.content}")
         a = tellraw(
             text = "["
         )
@@ -52,7 +50,6 @@ class BridgeCog(commands.Cog):
 
         combined = tellraw.multiple_tellraw(a, b, c, d, e)
         self.bot.console_pane.send_keys("tellraw @a " + combined)
-        self.bot.echo(f"Tellraw sent to server: {combined}")
     
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
@@ -63,12 +60,7 @@ class BridgeCog(commands.Cog):
             return
         
         if before.channel.id != config.bot["channel_id"]:
-            self.bot.echo(f"Received edit in incorrect channel.")
             return
-        
-        self.bot.echo(f"Edit detected.")
-        self.bot.echo(f"Before: {before.content}")
-        self.bot.echo(f"After : {after.content}")
 
         a = tellraw(
             text="["
@@ -102,7 +94,6 @@ class BridgeCog(commands.Cog):
 
         combined = tellraw.multiple_tellraw(a, b, c, d, e, f)
         self.bot.console_pane.send_keys("tellraw @a " + combined)
-        self.bot.echo(f"Tellraw sent to server: {combined}")
 
         a = tellraw(
             text = "["
@@ -137,7 +128,6 @@ class BridgeCog(commands.Cog):
 
         combined = tellraw.multiple_tellraw(a, b, c, d, e, f, g)
         self.bot.console_pane.send_keys("tellraw @a " + combined)
-        self.bot.echo(f"Tellraw sent to server: {combined}")
     
 async def setup(bot):
     await bot.add_cog(BridgeCog(bot))
