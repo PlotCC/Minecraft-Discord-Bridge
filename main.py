@@ -22,7 +22,7 @@ async def startup():
     # Initialize the bot
     bot = commands.Bot(
         intents=intents,
-        command_prefix=commands.when_mentioned
+        command_prefix=commands.when_mentioned_or(config.bot["prefix"])
     )
 
     # Get the tmux server object.

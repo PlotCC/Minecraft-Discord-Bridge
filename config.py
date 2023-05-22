@@ -3,6 +3,7 @@ import datetime
 bot = dict(
     channel_id = 0,
     token = "",
+    prefix = ">>"
 )
 
 server = dict(
