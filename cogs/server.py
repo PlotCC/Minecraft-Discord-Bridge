@@ -62,7 +62,7 @@ class ServerCog(commands.Cog):
         LOG.info("Server automatically starting up.")
         stop_server(self.bot)
 
-    @tasks.loop(time=datetime.time(hour=config.server["restart_time"].hour, minute=config.server["restart_time"] + 2))
+    @tasks.loop(time=datetime.time(hour=config.server["restart_time"].hour, minute=config.server["restart_time"].minute + 2))
     async def automatic_start_task(self):
         LOG.info("Server automatically shutting down.")
         start_server(self.bot)
