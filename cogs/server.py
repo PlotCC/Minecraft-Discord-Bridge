@@ -23,11 +23,11 @@ class ServerCog(commands.Cog):
     async def shutdown(self, interaction: discord.Interaction) -> None:
         if self.running:
             self.bot.console_pane.send_keys("stop")
-            interaction.response.send_message("Server is shutting down. Please give it a minute before attempting to start it again.", ephemeral=True)
+            await interaction.response.send_message("Server is shutting down. Please give it a minute before attempting to start it again.", ephemeral=True)
             await time.sleep(60)
             self.running = False
         else:
-            interaction.response.send_message("Server is not currently running.", ephemeral=True)
+            await interaction.response.send_message("Server is not currently running.", ephemeral=True)
 
     @app_commands.command(name="startup", description="Start up the Minecraft server.")
     @commands.guild_only()
@@ -36,11 +36,11 @@ class ServerCog(commands.Cog):
     async def startup(self, interaction: discord.Interaction) -> None:
         if not self.running:
             self.bot.console_pane.send_keys(config.programs["minecraft"])
-            interaction.response.send_message("Server is starting up.", ephemeral=True)
+            await interaction.response.send_message("Server is starting up.", ephemeral=True)
             await time.sleep(60)
             self.running = True
         else:
-            interaction.response.send_message("Server is currently running.", ephemeral=True)
+            await interaction.response.send_message("Server is currently running.", ephemeral=True)
 
     @app_commands.command(name="reboot-schedule", description="Display the automatic restart schedule of the Minecraft server.")
     @commands.guild_only()
