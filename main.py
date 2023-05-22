@@ -11,7 +11,9 @@ import config
 path = pathlib.Path(__file__)
 BOT_SRC = str(path.parent.absolute())
 
-LOG = logging.getLogger()
+logging.basicConfig(level=logging.INFO)
+
+LOG = logging.getLogger("MAIN")
 
 intents = discord.Intents.default()
 intents.message_content = True
