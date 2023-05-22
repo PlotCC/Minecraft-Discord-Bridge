@@ -115,7 +115,6 @@ async def main():
             line = f.readline()
             if line:
                 if line != "" and line != "\n":
-                    print(line)
                     matched = False
                     # For each action
                     for action in regexes:
@@ -123,11 +122,10 @@ async def main():
                         match = action.check(line)
                         if match:
                             # Run the action.
+                            print(f"Match: {line}")
                             matched = True
                             await action.on_match(match)
                             break
-                    if not matched:
-                        print("No match.")
                 elif line == "\n":
                     print("Ignored empty newline.")
                 elif line == "":
