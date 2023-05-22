@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands, tasks
 from discord import app_commands
 import time
-from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
 import config
 
@@ -16,8 +15,6 @@ class ServerCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.running = False
-
-    group = app_commands.Group(name="minecraft", description="Minecraft server controls.")
 
     @app_commands.command(name="shutdown", description="Shut down the Minecraft server.")
     @commands.guild_only()
@@ -60,4 +57,4 @@ class ServerCog(commands.Cog):
         await self.startup()
     
 async def setup(bot):
-    await bot.add_cog(ServerCog(bot), guilds=[discord.Object(id=753756684534546442)])
+    await bot.add_cog(ServerCog(bot))

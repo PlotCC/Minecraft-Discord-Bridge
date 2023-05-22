@@ -54,9 +54,18 @@ async def startup():
                 LOG.exception(f"Failed to load extension {extension} because: {e}")
             else:
                 LOG.info(f"Successfully loaded {extension}.")
-        
+
+        LOG.info("Loading Jishaku...")
+        try:
+            await bot.load_extension("jishaku")
+        except Exception as e:
+            LOG.exception(f"Failed to load Jishaku because: {e}")
+        else:
+            LOG.info("Successfully loaded Jishaku.")
+
         # Start the bot
         LOG.info("Starting bot.")
+        
         await bot.start(config.bot["token"])
 
 if __name__ == "__main__":
