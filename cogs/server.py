@@ -20,33 +20,33 @@ class ServerCog(commands.Cog):
     @commands.guild_only()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.cooldown(1, 180)
-    async def shutdown(self, ctx: discord.Interaction) -> None:
+    async def shutdown(self, interaction: discord.Interaction) -> None:
         if self.running:
             self.bot.console_pane.send_keys("stop")
-            ctx.send("Server is shutting down. Please give it a minute before attempting to start it again.", ephemeral=True)
+            interaction.response.send_message("Server is shutting down. Please give it a minute before attempting to start it again.", ephemeral=True)
             await time.sleep(60)
             self.running = False
         else:
-            ctx.send("Server is not currently running.", ephemeral=True)
+            interaction.response.send_message("Server is not currently running.", ephemeral=True)
 
     @app_commands.command(name="startup", description="Start up the Minecraft server.")
     @commands.guild_only()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.cooldown(1, 180)
-    async def startup(self, ctx: discord.Interaction) -> None:
+    async def startup(self, interaction: discord.Interaction) -> None:
         if not self.running:
             self.bot.console_pane.send_keys(config.programs["minecraft"])
-            ctx.send("Server is starting up.", ephemeral=True)
+            interaction.response.send_message("Server is starting up.", ephemeral=True)
             await time.sleep(60)
             self.running = True
         else:
-            ctx.send("Server is currently running.", ephemeral=True)
+            interaction.response.send_message("Server is currently running.", ephemeral=True)
 
     @app_commands.command(name="reboot-schedule", description="Display the automatic restart schedule of the Minecraft server.")
     @commands.guild_only()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
-    async def reboot_schedule(self, ctx: discord.Interaction) -> None:
-        ctx.send(f"Server restarts at {config.server['restart_time']} UTC daily.", ephemeral=True)
+    async def reboot_schedule(self, interaction: discord.Interaction) -> None:
+        interaction.response.send_message(f"Server restarts at {config.server['restart_time']} UTC daily.", ephemeral=True)
     
     # TODO: Task to detect when the server shuts down (errors or etc)
 
