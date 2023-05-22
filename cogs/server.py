@@ -44,7 +44,7 @@ class ServerCog(commands.Cog):
     @commands.guild_only()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
-        interaction.response.send_message(f"Server restarts at {config.server['restart_time']} UTC daily.", ephemeral=True)
+        await interaction.response.send_message(f"Server restarts at {config.server['restart_time']} UTC daily.", ephemeral=True)
     
     # TODO: Task to detect when the server shuts down (errors or etc)
 
