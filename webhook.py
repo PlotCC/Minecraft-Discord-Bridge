@@ -10,6 +10,7 @@ filesize = 0
 def need_log_reopen():
     global filesize
     if not os.path.isfile(config.webhook["latest_log_location"]):
+        print("Reopen required.")
         return True
     new_size = os.path.getsize(config.webhook["latest_log_location"])
     old_size = filesize
@@ -26,6 +27,7 @@ def open_latest_log():
         printed = True
         time.sleep(0.1)
     
+    print("Log opened.")
     return open(lll)
 
 from webhook_bridge import Bridge
