@@ -1,9 +1,18 @@
 import discord
 from discord.ext import commands, tasks
 from discord import app_commands
-import time
+import datetime
+import logging
 
 import config
+
+LOG = logging.getLogger("MC-SERVER")
+
+def start_server(bot):
+    bot.console_pane.send_keys("stop")
+
+def stop_server(bot):
+    bot.console_pane.send_keys(config.programs["minecraft"])
 
 class ServerCog(commands.Cog):
     """
@@ -22,7 +31,7 @@ class ServerCog(commands.Cog):
     @commands.cooldown(1, 180)
     async def shutdown(self, interaction: discord.Interaction) -> None:
         if self.running:
-            self.bot.console_pane.send_keys("stop")
+            start_server(self.bot)
             await interaction.response.send_message("Server is shutting down. Please give it a minute before attempting to start it again.", ephemeral=True)
             self.running = False
         else:
@@ -34,7 +43,7 @@ class ServerCog(commands.Cog):
     @commands.cooldown(1, 180)
     async def startup(self, interaction: discord.Interaction) -> None:
         if not self.running:
-            self.bot.console_pane.send_keys(config.programs["minecraft"])
+            stop_server(self.bot)
             await interaction.response.send_message("Server is starting up.", ephemeral=True)
             self.running = True
         else:
@@ -45,14 +54,18 @@ class ServerCog(commands.Cog):
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(f"Server restarts at {config.server['restart_time']} UTC daily.", ephemeral=True)
-    
-    # TODO: Task to detect when the server shuts down (errors or etc)
+
+    # TODO Notify players of automatic restart.
 
     @tasks.loop(time=config.server["restart_time"])
-    async def automatic_restart_task(self):
-        await self.shutdown()
-        await time.sleep(60)
-        await self.startup()
-    
+    async def automatic_stop_task(self):
+        LOG.info("Server automatically starting up.")
+        stop_server(self.bot)
+
+    @tasks.loop(time=datetime.time(hour=config.server["restart_time"].hour, minute=config.server["restart_time"] + 2))
+    async def automatic_start_task(self):
+        LOG.info("Server automatically shutting down.")
+        start_server(self.bot)
+
 async def setup(bot):
     await bot.add_cog(ServerCog(bot))
