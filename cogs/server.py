@@ -24,7 +24,6 @@ class ServerCog(commands.Cog):
         if self.running:
             self.bot.console_pane.send_keys("stop")
             await interaction.response.send_message("Server is shutting down. Please give it a minute before attempting to start it again.", ephemeral=True)
-            await time.sleep(60)
             self.running = False
         else:
             await interaction.response.send_message("Server is not currently running.", ephemeral=True)
@@ -37,7 +36,6 @@ class ServerCog(commands.Cog):
         if not self.running:
             self.bot.console_pane.send_keys(config.programs["minecraft"])
             await interaction.response.send_message("Server is starting up.", ephemeral=True)
-            await time.sleep(60)
             self.running = True
         else:
             await interaction.response.send_message("Server is currently running.", ephemeral=True)
