@@ -30,3 +30,8 @@ Planned feature list:
 - [ ] [Nice-to-have: `/list` / `/online` command to get currently online users (#4)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/4)
 - [ ] [Nice-to-have: More events detected (deaths, advancements, ...) (#5)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/5)
 - [ ] [Nice-to-have: Minecraft/Discord nickname linking (#6)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/6)
+
+## Python pip modules installation string
+```
+pip install -U discord.py libtmux zmq minecraftTellrawGenerator asyncio aiohttp requests tzdata
+```

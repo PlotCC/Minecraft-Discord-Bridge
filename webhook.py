@@ -10,6 +10,7 @@ filesize = 0
 def need_log_reopen():
     global filesize
     if not os.path.isfile(config.webhook["latest_log_location"]):
+        print("Reopen required.")
         return True
     new_size = os.path.getsize(config.webhook["latest_log_location"])
     old_size = filesize
@@ -26,6 +27,7 @@ def open_latest_log():
         printed = True
         time.sleep(0.1)
     
+    print("Log opened.")
     return open(lll)
 
 from webhook_bridge import Bridge
@@ -84,23 +86,30 @@ async def main():
         # Server starting action
         async def server_starting(match):
             print("Server starting, sending...")
-            await whb.on_server_starting();
+            await whb.on_server_starting()
         regexes.insert(0, regex_action(config.webhook["regex"]["server_starting"], server_starting, "Server starting"))
         print_action(config.webhook["regex"]["server_starting"], "Send server starting events to Discord.")
 
         # Server started action
         async def server_started(match):
             print("Server started, sending...")
-            await whb.on_server_started();
+            await whb.on_server_started()
         regexes.insert(0, regex_action(config.webhook["regex"]["server_started"], server_started, "Server started"))
         print_action(config.webhook["regex"]["server_started"], "Send server started events to Discord.")
 
         # Server stopping action
         async def server_stopping(match):
             print("Server stopping, sending...")
-            await whb.on_server_stopping();
+            await whb.on_server_stopping()
         regexes.insert(0, regex_action(config.webhook["regex"]["server_stopping"], server_stopping, "Server stopping"))
         print_action(config.webhook["regex"]["server_stopping"], "Send server stop events to Discord.")
+
+        # Server list action
+        async def server_list(match):
+            print("Server list sending...")
+            await whb.on_server_list(match.group(1), match.group(2))
+        regexes.insert(0, regex_action(config.webhook["regex"]["server_list"], server_list, "Server list"))
+        print_action(config.webhook["regex"]["server_list"], "Send server list events to Discord.")
 
         print("Done action setup.")
 
@@ -113,7 +122,6 @@ async def main():
             line = f.readline()
             if line:
                 if line != "" and line != "\n":
-                    print(line)
                     matched = False
                     # For each action
                     for action in regexes:
@@ -121,11 +129,10 @@ async def main():
                         match = action.check(line)
                         if match:
                             # Run the action.
+                            print(f"Match: {line}")
                             matched = True
                             await action.on_match(match)
                             break
-                    if not matched:
-                        print("No match.")
                 elif line == "\n":
                     print("Ignored empty newline.")
                 elif line == "":

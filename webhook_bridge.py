@@ -69,4 +69,12 @@ class Bridge:
         embed = discord.Embed(color=0xdd5555, description=":red_circle: **The server has closed.**")
 
         await self.__send_server_message(embed=embed)
+
+    # Send a server list event to discord.
+    async def on_server_list(self, current:str, max:str):
+        embed = discord.Embed(color=0x00ccff, description=f":information_source: **There are {current}/{max} players online currently.**")
+
+        await self.__send_server_message(embed=embed)
+
+    
     

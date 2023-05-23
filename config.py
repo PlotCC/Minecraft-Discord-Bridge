@@ -1,6 +1,16 @@
+import datetime
+from zoneinfo import ZoneInfo
+
 bot = dict(
     channel_id = 0,
     token = "",
+    prefix = ">>"
+)
+
+server = dict(
+    do_automatic_restart = True,
+    restart_time = datetime.time(hour=0, minute=0, second=0, tzinfo=ZoneInfo("America/Edmonton")),
+    root = "/somewhere/" # Absolute path to the minecraft server root folder
 )
 
 tmux_data = dict(
@@ -17,6 +27,7 @@ webhook = dict(
         server_starting = "^\[\d\d:\d\d:\d\d\] \[main\/INFO\] \[FML\]: Forge Mod Loader version \d*?\.\d*?\.\d*?\.\d*? for Minecraft \d*?\.\d*?\.\d*? loading$", # No groups required.
         server_started = "^\[\d\d:\d\d:\d\d\] \[Server thread\/INFO\] \[Dynmap\]: \[Dynmap\] Enabled$", # No groups required.
         server_stopping = "^\[\d\d:\d\d:\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.MinecraftServer\]: Stopping server$", # No groups required.
+        server_list = "^\[\d\d:\d\d:\d\d\] \[pool\-\d\-thread\-\d\/INFO\] \[minecraft\/DedicatedServer\]: ============ There are (\d+)\/(\d+) players online\. =============$" # Should return two match groups -- current players, max players.
     ),
     server_name = "Minecraft Server",
     latest_log_location = "/somewhere/latest.log", # Absolute path
@@ -37,6 +48,6 @@ programs = dict(
 icons = dict(
     avatar_lookup_url = "https://crafatar.com/avatars/",
     uuid_lookup_url = "https://api.mojang.com/users/profiles/minecraft/",
-    server = "https://fatboychummy.games/static/bots/mc_bridge/server_status.png",
-    minecraft = "https://fatboychummy.games/static/bots/mc_bridge/minecraft_icon.png"
+    server = "http://media.fatboychummy.games/bots/mc_bridge/server_status.png",
+    minecraft = "http://media.fatboychummy.games/bots/mc_bridge/minecraft_icon.png"
 )
