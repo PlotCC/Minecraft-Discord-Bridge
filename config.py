@@ -1,4 +1,5 @@
 import datetime
+from zoneinfo import ZoneInfo
 
 bot = dict(
     channel_id = 0,
@@ -8,7 +9,7 @@ bot = dict(
 
 server = dict(
     do_automatic_restart = True,
-    restart_time = datetime.time(hour=6, minute=0, second=0)
+    restart_time = datetime.time(hour=0, minute=0, second=0, tzinfo=ZoneInfo("America/Edmonton"))
 )
 
 tmux_data = dict(
