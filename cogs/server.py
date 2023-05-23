@@ -24,12 +24,10 @@ class ServerCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.running = False
-        self.starting = False
-        self.stopping = False
 
         # Start the autmatic tasks.
         self.automatic_stop_task.start()
-        self.automatic_start_task.start() # And boot the server when the bot starts
+        self.automatic_start_task.start()
 
     @app_commands.command(name="shutdown", description="Shut down the Minecraft server.")
     @commands.guild_only()
@@ -39,10 +37,11 @@ class ServerCog(commands.Cog):
         if self.running:
             stop_server(self.bot)
             await interaction.response.send_message("Server is shutting down. Please give it a minute before attempting to start it again.", ephemeral=True)
-            self.reset_stop.start()
-            self.stopping = True
-        elif self.stopping:
-            await interaction.response.send_message("Server is currently stopping.", ephemeral=True)
+            self.running = False
+        #    self.reset_stop.start()
+        #    self.stopping = True
+        #elif self.stopping:
+        #    await interaction.response.send_message("Server is currently stopping.", ephemeral=True)
         else:
             await interaction.response.send_message("Server is not currently running.", ephemeral=True)
 
@@ -54,10 +53,11 @@ class ServerCog(commands.Cog):
         if not self.running:
             start_server(self.bot)
             await interaction.response.send_message("Server is starting up.", ephemeral=True)
-            self.reset_start.start()
-            self.starting = True
-        elif self.starting:
-            await interaction.response.send_message("Server is currently starting up.", ephemeral=True)
+            self.running = True
+        #    self.reset_start.start()
+        #    self.starting = True
+        #elif self.starting:
+        #    await interaction.response.send_message("Server is currently starting up.", ephemeral=True)
         else:
             await interaction.response.send_message("Server is currently running.", ephemeral=True)
 
@@ -69,36 +69,14 @@ class ServerCog(commands.Cog):
 
     # TODO Notify players of automatic restart.
 
-    @tasks.loop(minutes=1)
-    async def reset_stop(self):
-        LOG.info("Reset stop called")
-        self.reset_stop.stop()
-        self.running = False
-        self.stopping = False
-        self.console_pane.reset()
-
-    @tasks.loop(minutes=1)
-    async def reset_start(self):
-        LOG.info("Reset start called")
-        self.reset_start.stop()
-        self.running = True
-        self.starting = False
-
     @tasks.loop(time=config.server["restart_time"])
     async def automatic_stop_task(self):
         LOG.info("Server automatically shutting down.")
         stop_server(self.bot)
-        self.starting = True
-        self.automatic_start_task.start()
-        self.reset_stop.start()
 
-    @tasks.loop(minutes=2)
+    @tasks.loop(time=datetime.time(hour=config.server["restart_time"].hour, minute=config.server["restart_time"].minute + 2))
     async def automatic_start_task(self):
         LOG.info("Server automatically starting up.")
         start_server(self.bot)
-        self.stopping = True
-        self.automatic_start_task.stop()
-        self.reset_start.start()
-
 async def setup(bot):
     await bot.add_cog(ServerCog(bot))
