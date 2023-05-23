@@ -12,6 +12,8 @@ def stop_server(bot):
     bot.console_pane.send_keys("stop")
 
 def start_server(bot):
+    bot.console_pane.reset()
+    bot.console_pane.send_keys("cd " + config.server["root"])
     bot.console_pane.send_keys(config.programs["minecraft"])
 
 class ServerCog(commands.Cog):

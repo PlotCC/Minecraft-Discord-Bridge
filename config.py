@@ -9,7 +9,8 @@ bot = dict(
 
 server = dict(
     do_automatic_restart = True,
-    restart_time = datetime.time(hour=0, minute=0, second=0, tzinfo=ZoneInfo("America/Edmonton"))
+    restart_time = datetime.time(hour=0, minute=0, second=0, tzinfo=ZoneInfo("America/Edmonton")),
+    root = "/somewhere/" # Absolute path to the minecraft server root folder
 )
 
 tmux_data = dict(
