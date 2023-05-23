@@ -45,6 +45,6 @@ programs = dict(
 icons = dict(
     avatar_lookup_url = "https://crafatar.com/avatars/",
     uuid_lookup_url = "https://api.mojang.com/users/profiles/minecraft/",
-    server = "https://fatboychummy.games/static/bots/mc_bridge/server_status.png",
-    minecraft = "https://fatboychummy.games/static/bots/mc_bridge/minecraft_icon.png"
+    server = "http://media.fatboychummy.games/bots/mc_bridge/server_status.png",
+    minecraft = "http://media.fatboychummy.games/bots/mc_bridge/minecraft_icon.png"
 )
