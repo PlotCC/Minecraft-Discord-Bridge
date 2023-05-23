@@ -67,9 +67,9 @@ class ServerCog(commands.Cog):
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(f"Server restarts at {config.server['restart_time']} UTC daily.", ephemeral=True)
     
-    @app_commands.command(name="online", description="Get the amount of players currently online.")
+    @app_commands.command(name="get-online", description="Get the amount of players currently online.")
     @commands.guild_only()
-    async def online(self, interaction: discord.Interaction) -> None:
+    async def get_online(self, interaction: discord.Interaction) -> None:
         self.console_pane.send_keys("list")
         await interaction.response.send_message("Ok.", ephemeral=True)
 
