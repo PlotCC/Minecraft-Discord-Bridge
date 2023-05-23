@@ -86,23 +86,30 @@ async def main():
         # Server starting action
         async def server_starting(match):
             print("Server starting, sending...")
-            await whb.on_server_starting();
+            await whb.on_server_starting()
         regexes.insert(0, regex_action(config.webhook["regex"]["server_starting"], server_starting, "Server starting"))
         print_action(config.webhook["regex"]["server_starting"], "Send server starting events to Discord.")
 
         # Server started action
         async def server_started(match):
             print("Server started, sending...")
-            await whb.on_server_started();
+            await whb.on_server_started()
         regexes.insert(0, regex_action(config.webhook["regex"]["server_started"], server_started, "Server started"))
         print_action(config.webhook["regex"]["server_started"], "Send server started events to Discord.")
 
         # Server stopping action
         async def server_stopping(match):
             print("Server stopping, sending...")
-            await whb.on_server_stopping();
+            await whb.on_server_stopping()
         regexes.insert(0, regex_action(config.webhook["regex"]["server_stopping"], server_stopping, "Server stopping"))
         print_action(config.webhook["regex"]["server_stopping"], "Send server stop events to Discord.")
+
+        # Server list action
+        async def server_list(match):
+            print("Server list sending...")
+            await whb.on_server_list(match.group(1), match.group(2))
+        regexes.insert(0, regex_action(config.webhook["regex"]["server_list"], server_list, "Server list"))
+        print_action(config.webhook["regex"]["server_list"], "Send server list events to Discord.")
 
         print("Done action setup.")
 

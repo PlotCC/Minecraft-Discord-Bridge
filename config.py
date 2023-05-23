@@ -26,6 +26,7 @@ webhook = dict(
         server_starting = "^\[\d\d:\d\d:\d\d\] \[main\/INFO\] \[FML\]: Forge Mod Loader version \d*?\.\d*?\.\d*?\.\d*? for Minecraft \d*?\.\d*?\.\d*? loading$", # No groups required.
         server_started = "^\[\d\d:\d\d:\d\d\] \[Server thread\/INFO\] \[Dynmap\]: \[Dynmap\] Enabled$", # No groups required.
         server_stopping = "^\[\d\d:\d\d:\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.MinecraftServer\]: Stopping server$", # No groups required.
+        server_list = "^\[\d\d:\d\d:\d\d\] \[pool\-\d\-thread\-\d\/INFO\] \[minecraft\/DedicatedServer\]: ============ There are (\d+)\/(\d+) players online\. =============$" # Should return two match groups -- current players, max players.
     ),
     server_name = "Minecraft Server",
     latest_log_location = "/somewhere/latest.log", # Absolute path
