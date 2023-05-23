@@ -8,10 +8,10 @@ import config
 
 LOG = logging.getLogger("MC-SERVER")
 
-def start_server(bot):
+def stop_server(bot):
     bot.console_pane.send_keys("stop")
 
-def stop_server(bot):
+def start_server(bot):
     bot.console_pane.send_keys(config.programs["minecraft"])
 
 class ServerCog(commands.Cog):
@@ -29,6 +29,7 @@ class ServerCog(commands.Cog):
 
         # Start the autmatic tasks.
         self.automatic_stop_task.start()
+        self.automatic_start_task.start() # And boot the server when the bot starts
 
     @app_commands.command(name="shutdown", description="Shut down the Minecraft server.")
     @commands.guild_only()
@@ -36,7 +37,7 @@ class ServerCog(commands.Cog):
     @commands.cooldown(1, 180)
     async def shutdown(self, interaction: discord.Interaction) -> None:
         if self.running:
-            start_server(self.bot)
+            stop_server(self.bot)
             await interaction.response.send_message("Server is shutting down. Please give it a minute before attempting to start it again.", ephemeral=True)
             self.reset_stop.start()
             self.stopping = True
@@ -51,7 +52,7 @@ class ServerCog(commands.Cog):
     @commands.cooldown(1, 180)
     async def startup(self, interaction: discord.Interaction) -> None:
         if not self.running:
-            stop_server(self.bot)
+            start_server(self.bot)
             await interaction.response.send_message("Server is starting up.", ephemeral=True)
             self.reset_start.start()
             self.starting = True
