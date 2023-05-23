@@ -67,6 +67,7 @@ class ServerCog(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def reset_stop(self):
+        LOG.info("Reset stop called")
         self.reset_stop.stop()
         self.running = False
         self.stopping = False
@@ -74,6 +75,7 @@ class ServerCog(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def reset_start(self):
+        LOG.info("Reset start called")
         self.reset_start.stop()
         self.running = True
         self.starting = False
