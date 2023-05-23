@@ -28,7 +28,6 @@ class ServerCog(commands.Cog):
         self.stopping = False
 
         # Start the autmatic tasks.
-        self.automatic_start_task.start()
         self.automatic_stop_task.start()
 
     @app_commands.command(name="shutdown", description="Shut down the Minecraft server.")
@@ -86,18 +85,19 @@ class ServerCog(commands.Cog):
 
     @tasks.loop(time=config.server["restart_time"])
     async def automatic_stop_task(self):
-        LOG.info("Server automatically starting up.")
+        LOG.info("Server automatically shutting down.")
         stop_server(self.bot)
-        self.reset_stop.start()
         self.starting = True
         self.automatic_start_task.start()
+        self.reset_stop.start()
 
     @tasks.loop(minutes=2)
     async def automatic_start_task(self):
-        LOG.info("Server automatically shutting down.")
+        LOG.info("Server automatically starting up.")
         start_server(self.bot)
         self.stopping = True
         self.automatic_start_task.stop()
+        self.reset_start.start()
 
 async def setup(bot):
     await bot.add_cog(ServerCog(bot))
