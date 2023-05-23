@@ -30,11 +30,11 @@ class Bridge:
 
         # If it is not cached and fails to get the avatar url, it will just pass an empty url to it.
 
-        await self.webhook.send(content=message, embed=embed, username=username, avatar_url=avatar_url)
+        await self.webhook.send(content=message, embed=embed, username=username, avatar_url=avatar_url, allowed_mentions=discord.AllowedMentions(everyone=False))
     
     # Send a message to discord "from" the server.
     async def __send_server_message(self, message="", embed=None):
-        await self.webhook.send(content=message, embed=embed, username=config.webhook["server_name"], avatar_url = config.icons["minecraft"])
+        await self.webhook.send(content=message, embed=embed, username=config.webhook["server_name"], avatar_url = config.icons["minecraft"], allowed_mentions=discord.AllowedMentions(everyone=False))
     
     # Send a player chat to discord.
     async def on_player_message(self, username:str, message:str):
