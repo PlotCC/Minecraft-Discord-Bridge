@@ -48,7 +48,7 @@ class regex_action:
             return match
 
 def print_action(regex:str, what_do:str):
-    print(f"  Regex: '{regex}'\n    Action: {what_do}")
+    print(f"  Regex: '{regex}'\n    Action: {what_do}\n")
 
 async def main():
     async with aiohttp.ClientSession() as session:
