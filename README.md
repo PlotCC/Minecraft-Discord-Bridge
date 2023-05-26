@@ -25,9 +25,9 @@ Current feature list:
 Planned feature list:
 
 - [x] [Requirement: Send messages from Discord to Minecraft (#1)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/1)
-- [ ] [Requirement: Fancify the output in both Minecraft and Discord (#2)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/2)
-- [ ] [Requirement: Autmatic Minecraft Reboots (#3)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/3)
-- [ ] [Nice-to-have: `/list` / `/online` command to get currently online users (#4)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/4)
+- [x] [Requirement: Fancify the output in both Minecraft and Discord (#2)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/2)
+- [x] [Requirement: Autmatic Minecraft Reboots (#3)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/3)
+- [x] [Nice-to-have: `/list` / `/online` command to get currently online users (#4)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/4)
 - [ ] [Nice-to-have: More events detected (deaths, advancements, ...) (#5)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/5)
 - [ ] [Nice-to-have: Minecraft/Discord nickname linking (#6)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/6)
 
