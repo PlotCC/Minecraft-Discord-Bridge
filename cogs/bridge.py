@@ -23,7 +23,7 @@ class BridgeCog(commands.Cog):
                         tellraw(text="["),
                         tellraw(text="Server",color="red"),
                         tellraw(text="] "),
-                        tellraw(text=match.group[1],color="yellow") 
+                        tellraw(text=match.group(1),color="yellow")
                     )
                     self.bot.console_pane.send_keys("tellraw @a " + combined)
             return
