@@ -111,7 +111,7 @@ class ServerCog(commands.Cog):
                             description=f":warning: Automatic server restart in {time}."
                         )
                     )
-                asyncio.sleep(1)
+                await asyncio.sleep(1)
             
             stop_server(self.bot)
             self.running = False
