@@ -128,7 +128,7 @@ class ServerCog(commands.Cog):
                 self.automatic_restart_task.stop()
                 stop_server(self.bot)
                 self.running = False
-                asyncio.sleep(120)
+                await asyncio.sleep(120)
                 if not self.running:
                     LOG.info("Server automatically starting up.")
                     start_server(self.bot)
