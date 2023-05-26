@@ -113,7 +113,7 @@ async def main():
 
         # Console message action
         async def console_message(match):
-            print("Server list sending...")
+            print("Console message sending...")
             await whb.on_console_message(match.group(1))
         regexes.insert(0, regex_action(config.webhook["regex"]["console_message"], console_message, "Console message"))
         print_action(config.webhook["regex"]["console_message"], "Send console messages to Discord.")
