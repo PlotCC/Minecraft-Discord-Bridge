@@ -73,7 +73,6 @@ class ServerCog(commands.Cog):
 
         # Start the autmatic tasks.
         self.automatic_stop_task.start()
-        self.automatic_start_task.start()
 
     @app_commands.command(name="shutdown", description="Shut down the Minecraft server.")
     @commands.guild_only()
