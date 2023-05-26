@@ -39,6 +39,27 @@ def get_countdown_message(time:int):
     if time == 0:
         return "0 seconds"
 
+def get_time_after(time: datetime.time, seconds: int) -> datetime.time:
+    hour = time.hour
+    minute = time.minute
+    second = time.second
+
+    hours_add = seconds % 3600
+    seconds = seconds // 3600
+    minutes_add = seconds % 60
+    seconds = seconds // 60
+    seconds_add = seconds
+
+    hour += hours_add
+    minute += minutes_add
+    second += seconds_add
+
+    hour %= 24
+    minute %= 60
+    second %= 60
+
+    return datetime.time(hour=hour, minute=minute, second=second)
+
 class ServerCog(commands.Cog):
     """
         This cog controls the minecraft server itself.
@@ -116,7 +137,7 @@ class ServerCog(commands.Cog):
             stop_server(self.bot)
             self.running = False
 
-    @tasks.loop(time=datetime.time(hour=config.server["restart_time"].hour, minute=config.server["restart_time"].minute + 2))
+    @tasks.loop(time=get_time_after(config.server["restart_time"], config.server["restart_delay"] + 120))
     async def automatic_start_task(self):
         if not self.running:
             LOG.info("Server automatically starting up.")
