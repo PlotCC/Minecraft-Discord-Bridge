@@ -115,8 +115,9 @@ class ServerCog(commands.Cog):
     @app_commands.command(name="get-online", description="Get the amount of players currently online.")
     @commands.guild_only()
     async def get_online(self, interaction: discord.Interaction) -> None:
-        self.console_pane.send_keys("list")
-        await interaction.response.send_message("Ok.", ephemeral=True)
+        if self.running:
+            self.console_pane.send_keys("list")
+            await interaction.response.send_message("Ok.", ephemeral=True)
 
     @tasks.loop(seconds=1)
     async def automatic_restart_task(self):
