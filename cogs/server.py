@@ -37,7 +37,7 @@ def get_countdown_message(time:int):
     if time == 1:
         return "1 second"
     if time == 0:
-        return "0 seconnds"
+        return "0 seconds"
 
 class ServerCog(commands.Cog):
     """
