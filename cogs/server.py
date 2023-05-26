@@ -119,30 +119,37 @@ class ServerCog(commands.Cog):
         self.console_pane.send_keys("list")
         await interaction.response.send_message("Ok.", ephemeral=True)
 
+    @tasks.loop(seconds=1)
+    async def automatic_restart_task(self):
+        if self.running:
+            self.restart_time -= 1
+
+            if self.restart_time <= -1:
+                self.automatic_stop_task_main.stop()
+                stop_server(self.bot)
+                self.running = False
+                asyncio.sleep(120)
+                if not self.running:
+                    LOG.info("Server automatically starting up.")
+                    start_server(self.bot)
+                    self.running = True
+                return
+
+            time = get_countdown_message(self.restart_time)
+            if time:
+                await self.channel.send(
+                    embed=discord.Embed(
+                        color=0xff00ff,
+                        description=f":warning: Automatic server restart in {time}."
+                    )
+                )
+
     @tasks.loop(time=config.server["restart_time"])
     async def automatic_stop_task(self):
         if self.running:
             LOG.info(f"Server automatically shutting down after {config.server['restart_delay']} seconds.")
-            for i in range(config.server["restart_delay"], -1, -1):
-                time = get_countdown_message(i)
-                if time:
-                    await self.channel.send(
-                        embed=discord.Embed(
-                            color=0xff00ff,
-                            description=f":warning: Automatic server restart in {time}."
-                        )
-                    )
-                await asyncio.sleep(1)
-            
-            stop_server(self.bot)
-            self.running = False
-
-    @tasks.loop(time=get_time_after(config.server["restart_time"], config.server["restart_delay"] + 120))
-    async def automatic_start_task(self):
-        if not self.running:
-            LOG.info("Server automatically starting up.")
-            start_server(self.bot)
-            self.running = True
+            self.restart_time = config.server["restart_delay"]
+            self.automatic_restart_task_main.start()
 
     @commands.Cog.listener()
     async def on_ready(self):
