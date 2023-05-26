@@ -107,7 +107,7 @@ async def main():
         # Server list action
         async def server_list(match):
             print("Server list sending...")
-            await whb.on_server_list(match.group(1), match.group(2))
+            await whb.on_server_list(match.group(1), match.group(2), match.group(3))
         regexes.insert(0, regex_action(config.webhook["regex"]["server_list"], server_list, "Server list"))
         print_action(config.webhook["regex"]["server_list"], "Send server list events to Discord.")
 
