@@ -1,3 +1,5 @@
+import re
+import discord
 from discord.ext import commands
 from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
@@ -8,8 +10,22 @@ class BridgeCog(commands.Cog):
         self.bot = bot
     
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         if message.author == self.bot.user:
+            # Parse message embed for server restart notifications.
+            # This is obviously the best way to do this.
+
+            if len(message.embeds) > 0:
+                embed_0 = message.embeds[0]
+                match = re.match("^:warning: (Automatic server restart in .+\.)$", embed_0.description)
+                if match:
+                    combined = tellraw.multiple_tellraw(
+                        tellraw(text="["),
+                        tellraw(text="Server",color="red"),
+                        tellraw(text="] "),
+                        tellraw(text=match.group(1),color="yellow")
+                    )
+                    self.bot.console_pane.send_keys("tellraw @a " + combined)
             return
         
         if message.author.bot:
@@ -48,7 +64,24 @@ class BridgeCog(commands.Cog):
             text=": " + message.content
         )
 
-        combined = tellraw.multiple_tellraw(a, b, c, d, e)
+        combined = None
+
+        if len(message.attachments) > 0:
+            attachment_list = []
+
+            i = 0
+            for attachment in message.attachments:
+                i += 1
+                attachment_list.append(tellraw(
+                    text = f" [attachment {i}]",
+                    url = attachment.url,
+                    color="cyan"
+                ))
+
+            combined = tellraw.multiple_tellraw(a, b, c, d, e, *attachment_list)
+        else:
+            combined = tellraw.multiple_tellraw(a, b, c, d, e)
+        
         self.bot.console_pane.send_keys("tellraw @a " + combined)
     
     @commands.Cog.listener()
@@ -61,72 +94,72 @@ class BridgeCog(commands.Cog):
         
         if before.channel.id != config.bot["channel_id"]:
             return
+    
+        if before.content == after.content: # Catch embed "edits"
+            return
 
-        a = tellraw(
-            text="["
-        )
-        b = tellraw(
-            text="Discord",
-            color="blue",
-            hover=tellraw(text="This message was sent from Discord!", color="light_purple"),
-            bold=True
-        )
-        c = tellraw(
-            text="] "
-        )
-        d = tellraw(
-            text="[EDIT - OLD] ",
-            color="dark_gray",
-            italic=True
-        )
-        e = tellraw(
-            text=before.author.display_name,
-            color="dark_gray",
-            italic=True
-        )
-        
-        f = tellraw(
-            text=": " + before.content,
-            hover=tellraw(text="This is an edit of a previous message."),
-            color="dark_gray",
-            italic=True
-        )
+        combined = tellraw.multiple_tellraw(
+            # Line 1: old message
+            tellraw(
+                text="["
+            ),
+            tellraw(
+                text="Discord",
+                color="blue",
+                hover=tellraw(text="This message was sent from Discord!", color="light_purple"),
+                bold=True
+            ),
+            tellraw(
+                text="] "
+            ),
+            tellraw(
+                text="[EDIT - OLD] ",
+                color="dark_gray",
+                italic=True
+            ),
+            tellraw(
+                text=before.author.display_name,
+                color="dark_gray",
+                italic=True
+            ),
+            tellraw(
+                text=": " + before.content + "\n",
+                color="dark_gray",
+                hover=tellraw(text="This is the old message."),
+                italic=True
+            ),
 
-        combined = tellraw.multiple_tellraw(a, b, c, d, e, f)
-        self.bot.console_pane.send_keys("tellraw @a " + combined)
-
-        a = tellraw(
-            text = "["
+            # Line 2: new message
+            tellraw(
+                text = "["
+            ),
+            tellraw(
+                text="Discord",
+                color="blue",
+                hover=tellraw(text="This message was sent from Discord!", color="light_purple"),
+                bold=True
+            ),
+            tellraw(
+                text="] "
+            ),
+            tellraw(
+                text="[EDIT - NEW] ",
+                color="gold"
+            ),
+            tellraw(
+                text=after.author.display_name,
+                color="gold"
+            ),
+            tellraw(
+                text=": ",
+                color="gold"
+            ),
+            tellraw(
+                text=after.content,
+                hover=tellraw(text="This is the new message."),
+                color="gold"
+            )
         )
-        b = tellraw(
-            text="Discord",
-            color="blue",
-            hover=tellraw(text="This message was sent from Discord!", color="light_purple"),
-            bold=True
-        )
-        c = tellraw(
-            text="] "
-        )
-        d = tellraw(
-            text="[EDIT - NEW] ",
-            color="gold"
-        )
-        e = tellraw(
-            text=after.author.display_name,
-            color="gold"
-        )
-        
-        f = tellraw(
-            text=": ",
-            color="gold"
-        )
-
-        g = tellraw(
-            text=after.content,
-            color="gold"
-        )
-
-        combined = tellraw.multiple_tellraw(a, b, c, d, e, f, g)
         self.bot.console_pane.send_keys("tellraw @a " + combined)
     
 async def setup(bot):
