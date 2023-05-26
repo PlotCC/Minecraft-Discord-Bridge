@@ -58,7 +58,7 @@ def get_time_after(time: datetime.time, seconds: int) -> datetime.time:
     minute %= 60
     second %= 60
 
-    return datetime.time(hour=hour, minute=minute, second=second)
+    return datetime.time(hour=hour, minute=minute, second=second, tzinfo=time.tzinfo)
 
 class ServerCog(commands.Cog):
     """
