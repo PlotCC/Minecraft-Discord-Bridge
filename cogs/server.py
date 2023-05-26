@@ -44,10 +44,10 @@ def get_time_after(time: datetime.time, seconds: int) -> datetime.time:
     minute = time.minute
     second = time.second
 
-    hours_add = seconds % 3600
-    seconds = seconds // 3600
-    minutes_add = seconds % 60
-    seconds = seconds // 60
+    hours_add = seconds // 3600
+    seconds %=  3600
+    minutes_add = seconds // 60
+    seconds %= 60
     seconds_add = seconds
 
     hour += hours_add
@@ -111,7 +111,7 @@ class ServerCog(commands.Cog):
     @commands.guild_only()
     @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
-        await interaction.response.send_message(f"Server restarts at {config.server['restart_time']} UTC daily.", ephemeral=True)
+        await interaction.response.send_message(f"Server restarts at {config.server['restart_time']} (Timezone: {config.server['restart_time'].tzinfo.key}) daily.", ephemeral=True)
     
     @app_commands.command(name="get-online", description="Get the amount of players currently online.")
     @commands.guild_only()
@@ -149,6 +149,6 @@ class ServerCog(commands.Cog):
         self.channel = self.bot.get_channel(config.bot["channel_id"])
     
 async def setup(bot):
-    LOG.info(f"Server shutdown is scheduled for {config.server['restart_time']} in timezone {config.server['restart_time'].tzname}.")
-    LOG.info(f"Server startup is scheduled for {get_time_after(config.server['restart_time'], config.server['restart_delay'] + 120)} in timezone {config.server['restart_time'].tzname}.")
+    LOG.info(f"Server shutdown is scheduled for {config.server['restart_time']} in timezone {config.server['restart_time'].tzinfo.key}.")
+    LOG.info(f"Server startup is scheduled for {get_time_after(config.server['restart_time'], config.server['restart_delay'] + 120)} in timezone {config.server['restart_time'].tzinfo.key}.")
     await bot.add_cog(ServerCog(bot))
