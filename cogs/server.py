@@ -124,7 +124,7 @@ class ServerCog(commands.Cog):
             self.restart_time -= 1
 
             if self.restart_time <= -1:
-                self.automatic_stop_task_main.stop()
+                self.automatic_restart_task.stop()
                 stop_server(self.bot)
                 self.running = False
                 asyncio.sleep(120)
@@ -147,7 +147,7 @@ class ServerCog(commands.Cog):
     async def automatic_stop_task(self):
         if self.running:
             LOG.info(f"Server automatically shutting down after {config.server['restart_delay']} seconds.")
-            self.restart_time = config.server["restart_delay"]
+            self.restart_time = config.server["restart_delay"] + 1
             self.automatic_restart_task.start()
 
     @commands.Cog.listener()
@@ -155,6 +155,6 @@ class ServerCog(commands.Cog):
         self.channel = self.bot.get_channel(config.bot["channel_id"])
     
 async def setup(bot):
-    LOG.info(f"Server shutdown is scheduled for {config.server['restart_time']} in timezone {config.server['restart_time'].tzinfo.key}.")
-    LOG.info(f"Server startup is scheduled for {get_time_after(config.server['restart_time'], config.server['restart_delay'] + 120)} in timezone {config.server['restart_time'].tzinfo.key}.")
+    LOG.info(f"Server shutdown timer is scheduled for {config.server['restart_time']} in timezone {config.server['restart_time'].tzinfo.key}, timer is {config.server['restart_delay']} seconds.")
+    LOG.info(f"Server should shut down around {get_time_after(config.server['restart_time'], config.server['restart_delay'])} and start back up around {get_time_after(config.server['restart_time'], config.server['restart_delay'] + 120)}.")
     await bot.add_cog(ServerCog(bot))
