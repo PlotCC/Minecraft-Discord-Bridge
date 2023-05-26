@@ -9,6 +9,10 @@ class Bridge:
         self.webhook = webhook
         self.username_cache = dict()
 
+    # Send a message from the console.
+    async def __send_console_message(self, message, embed=None):
+        await self.webhook.send(content=message, embed=embed, username="Console", avatar_url=config.icons["console"])
+
     # Send a message which is "from" a player.
     async def __send_player_message(self, username:str, message="", embed=None):
         avatar_url = None
@@ -32,48 +36,58 @@ class Bridge:
 
         await self.webhook.send(content=message, embed=embed, username=username, avatar_url=avatar_url, allowed_mentions=discord.AllowedMentions(everyone=False))
     
-    # Send a message to discord "from" the server.
+    # Send a message to Discord "from" the server.
     async def __send_server_message(self, message="", embed=None):
         await self.webhook.send(content=message, embed=embed, username=config.webhook["server_name"], avatar_url = config.icons["minecraft"], allowed_mentions=discord.AllowedMentions(everyone=False))
     
-    # Send a player chat to discord.
+    # Send a player chat to Discord.
     async def on_player_message(self, username:str, message:str):
         await self.__send_player_message(username, message=message)
 
-    # Send a player join event to discord.
+    # Send a player join event to Discord.
     async def on_player_join(self, username:str):
         embed = discord.Embed(color=0x00ff00, description=f":inbox_tray: **{username}** joined the game.")
 
         await self.__send_server_message(embed=embed)
 
-    # Send a player leave event to discord.
+    # Send a player leave event to Discord.
     async def on_player_leave(self, username:str):
         embed = discord.Embed(color=0xff0000, description=f":outbox_tray: **{username}** left the game.")
 
         await self.__send_server_message(embed=embed)
     
-    # Send a server starting event to discord.
+    # Send a server starting event to Discord.
     async def on_server_starting(self):
         embed = discord.Embed(color=0xccdd00, description=":yellow_circle: **The server is starting up...**")
 
         await self.__send_server_message(embed=embed)
     
-    # Send a server starting event to discord.
+    # Send a server starting event to Discord.
     async def on_server_started(self):
         embed = discord.Embed(color=0x55dd55, description=":green_circle: **The server has started.**")
 
         await self.__send_server_message(embed=embed)
     
-    # Send a server starting event to discord.
+    # Send a server starting event to Discord.
     async def on_server_stopping(self):
         embed = discord.Embed(color=0xdd5555, description=":red_circle: **The server has closed.**")
 
         await self.__send_server_message(embed=embed)
 
-    # Send a server list event to discord.
-    async def on_server_list(self, current:str, max:str):
-        embed = discord.Embed(color=0x00ccff, description=f":information_source: **There are {current}/{max} players online currently.**")
+    # Send a server list event to Discord.
+    async def on_server_list(self, current:str, max:str, players:str):
+        embed = discord.Embed(color=0xb800b5, description=f":information_source: **There are {current}/{max} players online: {players}**")
 
+        await self.__send_server_message(embed=embed)
+
+    # Send a console message event to Discord.
+    async def on_console_message(self, message:str):
+        await self.__send_console_message(message)
+    
+    # Send an advancement notification to Discord.
+    async def on_advancement(self, username:str, advancement:str):
+        embed = discord.Embed(color=0xcc00cc, description=f":medal: {username} has made the advancement {advancement}!")
+        
         await self.__send_server_message(embed=embed)
 
     

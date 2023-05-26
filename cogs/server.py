@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 from discord import app_commands
 import datetime
 import logging
+import asyncio
 
 import config
 
@@ -15,6 +16,28 @@ def start_server(bot):
     bot.console_pane.reset()
     bot.console_pane.send_keys("cd " + config.server["root"])
     bot.console_pane.send_keys(config.programs["minecraft"])
+
+def get_countdown_message(time:int):
+    if time >= 3600 and time % 3600 == 0:
+        return f"{time / 3600} hours"
+    if time == 1800:
+        return "30 minutes"
+    if time == 900:
+        return "15 minutes"
+    if time == 600:
+        return "10 minutes"
+    if time == 300:
+        return "5 minutes"
+    if time == 60:
+        return "1 minute"
+    if time == 30:
+        return "30 seconds"
+    if time <= 10 and time > 1:
+        return f"{time} seconds"
+    if time == 1:
+        return "1 second"
+    if time == 0:
+        return "0 seconnds"
 
 class ServerCog(commands.Cog):
     """
@@ -75,16 +98,34 @@ class ServerCog(commands.Cog):
         self.console_pane.send_keys("list")
         await interaction.response.send_message("Ok.", ephemeral=True)
 
-    # TODO Notify players of automatic restart.
-
     @tasks.loop(time=config.server["restart_time"])
     async def automatic_stop_task(self):
-        LOG.info("Server automatically shutting down.")
-        stop_server(self.bot)
+        if self.running:
+            LOG.info(f"Server automatically shutting down after {config.server['restart_delay']} seconds.")
+            for i in range(config.server["restart_delay"], -1, -1):
+                time = get_countdown_message(i)
+                if time:
+                    await self.channel.send(
+                        embed=discord.Embed(
+                            color=0xff00ff,
+                            description=f":warning: Automatic server restart in {time}."
+                        )
+                    )
+                asyncio.sleep(1)
+            
+            stop_server(self.bot)
+            self.running = False
 
     @tasks.loop(time=datetime.time(hour=config.server["restart_time"].hour, minute=config.server["restart_time"].minute + 2))
     async def automatic_start_task(self):
-        LOG.info("Server automatically starting up.")
-        start_server(self.bot)
+        if not self.running:
+            LOG.info("Server automatically starting up.")
+            start_server(self.bot)
+            self.running = True
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.channel = self.bot.get_channel(config.bot["channel_id"])
+    
 async def setup(bot):
     await bot.add_cog(ServerCog(bot))
