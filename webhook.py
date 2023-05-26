@@ -48,7 +48,7 @@ class regex_action:
             return match
 
 def print_action(regex:str, what_do:str):
-    print(f"  Regex: '{regex}'\n    Action: {what_do}")
+    print(f"  Regex: '{regex}'\n    Action: {what_do}\n")
 
 async def main():
     async with aiohttp.ClientSession() as session:
@@ -111,6 +111,20 @@ async def main():
         regexes.insert(0, regex_action(config.webhook["regex"]["server_list"], server_list, "Server list"))
         print_action(config.webhook["regex"]["server_list"], "Send server list events to Discord.")
 
+        # Console message action
+        async def console_message(match):
+            print("Server list sending...")
+            await whb.on_console_message(match.group(1))
+        regexes.insert(0, regex_action(config.webhook["regex"]["console_message"], console_message, "Console message"))
+        print_action(config.webhook["regex"]["console_message"], "Send console messages to Discord.")
+
+        # Advancement action
+        async def advancement(match):
+            print("Advancement sending...")
+            await whb.on_advancement(match.group(1), match.group(2))
+        regexes.insert(0, regex_action(config.webhook["regex"]["advancement"], advancement, "Advancement"))
+        print_action(config.webhook["regex"]["advancement"], "Send advancement events to Discord.")
+
         print("Done action setup.")
 
         f = open_latest_log()
@@ -149,6 +163,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-    # loop = asyncio.new_event_loop()
-    # loop.run_until_complete(main())
-    # loop.close()

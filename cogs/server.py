@@ -116,8 +116,10 @@ class ServerCog(commands.Cog):
     @commands.guild_only()
     async def get_online(self, interaction: discord.Interaction) -> None:
         if self.running:
-            self.console_pane.send_keys("list")
+            self.bot.console_pane.send_keys("list")
             await interaction.response.send_message("Ok.", ephemeral=True)
+        else:
+            await interaction.response.send_message("Server is offline!", ephemeral=True)
 
     @tasks.loop(seconds=1)
     async def automatic_restart_task(self):
