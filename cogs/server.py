@@ -149,4 +149,6 @@ class ServerCog(commands.Cog):
         self.channel = self.bot.get_channel(config.bot["channel_id"])
     
 async def setup(bot):
+    LOG.info(f"Server shutdown is scheduled for {config.server['restart_time']} in timezone {config.server['restart_time'].tzname}.")
+    LOG.info(f"Server startup is scheduled for {get_time_after(config.server['restart_time'], config.server['restart_delay'] + 120)} in timezone {config.server['restart_time'].tzname}.")
     await bot.add_cog(ServerCog(bot))
