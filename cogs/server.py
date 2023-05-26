@@ -148,7 +148,7 @@ class ServerCog(commands.Cog):
         if self.running:
             LOG.info(f"Server automatically shutting down after {config.server['restart_delay']} seconds.")
             self.restart_time = config.server["restart_delay"]
-            self.automatic_restart_task_main.start()
+            self.automatic_restart_task.start()
 
     @commands.Cog.listener()
     async def on_ready(self):
