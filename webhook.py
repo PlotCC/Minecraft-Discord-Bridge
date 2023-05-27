@@ -1,10 +1,12 @@
 import aiohttp
 import asyncio
 import re
-import discord
 from discord import Webhook
 import time
 import os
+
+from webhook_bridge import Bridge
+import config
 
 filesize = 0
 def need_log_reopen():
@@ -29,9 +31,6 @@ def open_latest_log():
     
     print("Log opened.")
     return open(lll)
-
-from webhook_bridge import Bridge
-import config
 
 class regex_action:
     """Holds a regex and runs a function if the regex matches an input string"""
