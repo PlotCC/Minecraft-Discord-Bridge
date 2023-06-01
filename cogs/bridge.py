@@ -56,7 +56,7 @@ class BridgeCog(commands.Cog):
             d = tellraw(
                 text=message.author.display_name,
                 insertion="<@" + str(message.author.id) + "> ",
-                hover=tellraw(text="Click to reply!", color="yellow")
+                hover=tellraw(text="Shift+click to @ this user!", color="yellow")
             )
             
         else:
@@ -78,13 +78,24 @@ class BridgeCog(commands.Cog):
             for attachment in message.attachments:
                 i += 1
                 attachment_list.append(tellraw(
-                    text=" ["
+                    text="[" if message.content == "" and i == 1 else " ["
                 ))
                 attachment_list.append(tellraw(
                     text=f"attachment {i}",
                     url=attachment.url,
                     color="aqua",
-                    hover=attachment.url
+                    hover=tellraw.multiple_tellraw(
+                        tellraw(
+                            text="Click to open "
+                        ),
+                        tellraw(
+                            text=attachment.url,
+                            color="aqua"
+                        ),
+                        tellraw(
+                            text="."
+                        )
+                    )
                 ))
                 attachment_list.append(tellraw(
                     text="]"
