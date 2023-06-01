@@ -1,9 +1,14 @@
 import re
 import discord
+import emoji
 from discord.ext import commands
 from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
 import config
+
+emoji_match = "<a?(:.*?:)\d*?>"
+def parse_emoji(content):
+    emoji.demojize(re.sub(emoji_match, "\1", content))
 
 class BridgeCog(commands.Cog):
     def __init__(self, bot):
@@ -35,7 +40,7 @@ class BridgeCog(commands.Cog):
             return
 
         a = tellraw(
-            text = "["
+            text="["
         )
         b = tellraw(
             text="Discord",
@@ -61,7 +66,7 @@ class BridgeCog(commands.Cog):
                 hover=tellraw(text=message.author.mention, color="yellow")
             )
         e = tellraw(
-            text=": " + message.content
+            text=": " + parse_emoji(message.content)
         )
 
         combined = None
@@ -77,7 +82,7 @@ class BridgeCog(commands.Cog):
                 ))
                 attachment_list.append(tellraw(
                     text=f" [attachment {i}]",
-                    url= attachment.url,
+                    url=attachment.url,
                     color="aqua",
                     hover=attachment.url
                 ))
@@ -130,7 +135,7 @@ class BridgeCog(commands.Cog):
                 italic=True
             ),
             tellraw(
-                text=": " + before.content + "\n",
+                text=": " + parse_emoji(before.content) + "\n",
                 color="dark_gray",
                 hover=tellraw(text="This is the old message."),
                 italic=True
@@ -138,7 +143,7 @@ class BridgeCog(commands.Cog):
 
             # Line 2: new message
             tellraw(
-                text = "["
+                text="["
             ),
             tellraw(
                 text="Discord",
@@ -162,7 +167,7 @@ class BridgeCog(commands.Cog):
                 color="gold"
             ),
             tellraw(
-                text=after.content,
+                text=parse_emoji(after.content),
                 hover=tellraw(text="This is the new message."),
                 color="gold"
             )
