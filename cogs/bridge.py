@@ -8,7 +8,7 @@ import config
 
 emoji_match = "<a?(:.*?:)\d*?>"
 def parse_emoji(content):
-    emoji.demojize(re.sub(emoji_match, "\1", content))
+    return emoji.demojize(re.sub(emoji_match, "\1", content))
 
 class BridgeCog(commands.Cog):
     def __init__(self, bot):
