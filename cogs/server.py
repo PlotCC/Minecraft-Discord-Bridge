@@ -75,9 +75,8 @@ class ServerCog(commands.Cog):
         self.automatic_stop_task.start()
 
     @app_commands.command(name="shutdown", description="Shut down the Minecraft server.")
-    @commands.guild_only()
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
-    @commands.cooldown(1, 180)
+    @app_commands.checks.cooldown(180, 1)
+    @app_commands.checks.has_permissions(administrator=True)
     async def shutdown(self, interaction: discord.Interaction) -> None:
         if self.running:
             stop_server(self.bot)
@@ -91,9 +90,8 @@ class ServerCog(commands.Cog):
             await interaction.response.send_message("Server is not currently running.", ephemeral=True)
 
     @app_commands.command(name="startup", description="Start up the Minecraft server.")
-    @commands.guild_only()
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
-    @commands.cooldown(1, 180)
+    @app_commands.checks.cooldown(180, 1)
+    @app_commands.checks.has_permissions(administrator=True)
     async def startup(self, interaction: discord.Interaction) -> None:
         if not self.running:
             start_server(self.bot)
@@ -107,13 +105,10 @@ class ServerCog(commands.Cog):
             await interaction.response.send_message("Server is currently running.", ephemeral=True)
 
     @app_commands.command(name="reboot-schedule", description="Display the automatic restart schedule of the Minecraft server.")
-    @commands.guild_only()
-    @commands.check_any(commands.is_owner(), commands.has_permissions(administrator=True))
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
-        await interaction.response.send_message(f"Server restarts at {config.server['restart_time']} (Timezone: {config.server['restart_time'].tzinfo.key}) daily.", ephemeral=True)
+        await interaction.response.send_message(f"Server restart begins at {config.server['restart_time']} (Timezone: {config.server['restart_time'].tzinfo.key}), delay is {config.server['restart_delay']} seconds.", ephemeral=True)
     
     @app_commands.command(name="get-online", description="Get the amount of players currently online.")
-    @commands.guild_only()
     async def get_online(self, interaction: discord.Interaction) -> None:
         if self.running:
             self.bot.console_pane.send_keys("list")
