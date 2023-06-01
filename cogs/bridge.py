@@ -73,9 +73,16 @@ class BridgeCog(commands.Cog):
             for attachment in message.attachments:
                 i += 1
                 attachment_list.append(tellraw(
-                    text = f" [attachment {i}]",
-                    url = attachment.url,
-                    color="cyan"
+                    text=" ["
+                ))
+                attachment_list.append(tellraw(
+                    text=f" [attachment {i}]",
+                    url= attachment.url,
+                    color="aqua",
+                    hover=attachment.url
+                ))
+                attachment_list.append(tellraw(
+                    text="]"
                 ))
 
             combined = tellraw.multiple_tellraw(a, b, c, d, e, *attachment_list)
