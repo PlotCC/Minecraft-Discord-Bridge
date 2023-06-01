@@ -81,7 +81,7 @@ class BridgeCog(commands.Cog):
                     text=" ["
                 ))
                 attachment_list.append(tellraw(
-                    text=f" [attachment {i}]",
+                    text=f"attachment {i}",
                     url=attachment.url,
                     color="aqua",
                     hover=attachment.url
