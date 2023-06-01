@@ -81,7 +81,7 @@ class ServerCog(commands.Cog):
     async def shutdown(self, interaction: discord.Interaction) -> None:
         if self.running:
             stop_server(self.bot)
-            await interaction.response.send_message("Server is shutting down. Please give it a minute before attempting to start it again.", ephemeral=True)
+            await interaction.response.send_message("Server is shutting down. Please give it a minute before attempting to start it again.")
             self.running = False
         #    self.reset_stop.start()
         #    self.stopping = True
@@ -97,7 +97,7 @@ class ServerCog(commands.Cog):
     async def startup(self, interaction: discord.Interaction) -> None:
         if not self.running:
             start_server(self.bot)
-            await interaction.response.send_message("Server is starting up.", ephemeral=True)
+            await interaction.response.send_message("Server is starting up.")
             self.running = True
         #    self.reset_start.start()
         #    self.starting = True
