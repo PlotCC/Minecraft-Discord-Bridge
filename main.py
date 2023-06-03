@@ -55,7 +55,10 @@ async def startup():
     bot.console_pane = console_win.panes[0]
 
     # Create the pane for the bridge.
-    bot.bridge_pane = console_win.split_window(attach=True)
+    if bot.session_existed:
+        bot.bridge_pane = console_win.panes[1]
+    else:
+        bot.bridge_pane = console_win.split_window(attach=True)
 
     # Start the bridge.
     bot.bridge_pane.send_keys(config.programs["bridge"])
