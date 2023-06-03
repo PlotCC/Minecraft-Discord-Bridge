@@ -139,7 +139,7 @@ class ServerCog(commands.Cog):
         else:
             await interaction.response.send_message(f"Restart delay updated to {time} seconds.")
     
-    @app_commands.command(name="set-state", description="Use this if you needed to reload the server module, you can mark the server as online or offline without running startup or shutdown.")
+    @app_commands.command(name="set-state", description="Mark the server as online or offline, useful if server module is reloaded.")
     @app_commands.describe(online="The server state.")
     @app_commands.checks.has_permissions(administrator=True)
     async def set_state(self, interaction: discord.Interaction, online: bool = True) -> None:
