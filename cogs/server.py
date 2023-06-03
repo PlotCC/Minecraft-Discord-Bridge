@@ -72,6 +72,7 @@ class ServerCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.session_message = None
+        self.channel = None
         self.running = False
         self.cancel_restart = False
         self.restart_lock = False
@@ -213,8 +214,8 @@ class ServerCog(commands.Cog):
             if not self.automatic_restart_task.is_running():
                 self.automatic_restart_task.start()
 
-    @commands.Cog.listener()
-    async def on_ready(self):
+    async def get_channel(self):
+        LOG.info("Getting channel.")
         self.channel = self.bot.get_channel(config.bot["channel_id"])
         if self.bot.session_existed:
             self.session_message = await self.channel.send(
@@ -223,7 +224,14 @@ class ServerCog(commands.Cog):
                     description=f":warning: Session already exists and I was unable to determine if the server was online. Please use /set-state to configure."
                 )
             )
-            
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await self.get_channel()
+    
+    async def cog_load(self): # If the cog reloads, this can get the channel again.
+        if self.bot.is_ready():
+            await self.get_channel()
     
     async def cog_unload(self):
         if self.automatic_restart_task.is_running():
