@@ -120,7 +120,7 @@ class ServerCog(commands.Cog):
         self.cancel_restart = True
         await interaction.response.send_message("Server restart will be cancelled.")
 
-    @app_commands.command(name="skip-restart", description="Cancel the current restart timer.")
+    @app_commands.command(name="skip-restart", description="Skip the next <n> server restarts. Defaults to 1.")
     @app_commands.describe(count="The amount of restarts to skip, defaults to a single restart.")
     @app_commands.checks.has_permissions(administrator=True)
     async def skip_restart_cmd(self, interaction: discord.Interaction, count: int = 1) -> None:
@@ -142,7 +142,7 @@ class ServerCog(commands.Cog):
     @app_commands.command(name="set-state", description="Mark the server as online or offline, useful if server module is reloaded.")
     @app_commands.describe(online="The server state.")
     @app_commands.checks.has_permissions(administrator=True)
-    async def set_state(self, interaction: discord.Interaction, online: bool = True) -> None:
+    async def set_state(self, interaction: discord.Interaction, online: bool) -> None:
         self.running = online
         await interaction.response.send_message(f"Set server online state to {online}.", delete_after=4)
         if self.session_message != None:
