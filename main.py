@@ -29,7 +29,7 @@ async def startup():
     Server = libtmux.Server()
 
     session = None
-    session_existed = False
+    bot.session_existed = False
 
     try:
         # Create a new session. This throws if a session exists already!
@@ -39,7 +39,7 @@ async def startup():
         for _session in Server.sessions:
             if _session.name == config.tmux_data["tmux_session"]:
                 session = _session
-                session_existed = True
+                bot.session_existed = True
                 break
     
     if session:
