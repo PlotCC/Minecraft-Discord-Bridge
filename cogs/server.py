@@ -225,16 +225,16 @@ class ServerCog(commands.Cog):
             )
             
     
-    def cog_unload(self):
+    async def cog_unload(self):
         if self.automatic_restart_task.is_running():
             self.automatic_restart_task.stop()
         if self.automatic_stop_task.is_running():
             self.automatic_stop_task.stop()
         
         try:
-            self.channel.send(":warning: Server cog unloaded.")
-        except:
-            None
+            await self.channel.send(":warning: Server cog unloaded.")
+        except Exception as e:
+            LOG.error(f"Failed to send cog unload notification: {e}")
     
 async def setup(bot):
     LOG.info(f"Server shutdown timer is scheduled for {config.server['restart_time']} in timezone {config.server['restart_time'].tzinfo.key}, timer is {config.server['restart_delay']} seconds.")
