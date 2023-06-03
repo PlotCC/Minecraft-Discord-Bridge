@@ -49,7 +49,9 @@ async def startup():
     console_win = session.windows[0]
     console_win.rename_window(config.tmux_data["window_name"])
     # Set the layout to look fancy.
-    console_win.select_layout("main-vertical")
+
+    if not bot.session_existed: # Only set the layout if it wasn't already set.
+        console_win.select_layout("main-vertical")
 
     # Get the console window pane.
     bot.console_pane = console_win.panes[0]
