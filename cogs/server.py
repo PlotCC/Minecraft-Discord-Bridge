@@ -232,7 +232,7 @@ class ServerCog(commands.Cog):
             self.automatic_stop_task.stop()
         
         try:
-            self.bot.channel.send(":warning: Server cog unloaded.")
+            self.channel.send(":warning: Server cog unloaded.")
         except:
             None
     
