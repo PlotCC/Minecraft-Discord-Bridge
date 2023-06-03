@@ -42,7 +42,7 @@ async def startup():
                 bot.session_existed = True
                 break
     
-    if session:
+    if not session:
         raise Exception("Tmux session existed but also it did not. Weird.")
 
     # Get the main window.
