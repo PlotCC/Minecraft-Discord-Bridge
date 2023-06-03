@@ -31,6 +31,16 @@ class BridgeCog(commands.Cog):
                         tellraw(text=match.group(1),color="yellow")
                     )
                     self.bot.console_pane.send_keys("tellraw @a " + combined)
+                    return
+            if message.content == "Server restart will be cancelled.":
+                combined = tellraw.multiple_tellraw(
+                    tellraw(text="["),
+                    tellraw(text="Server",color="red"),
+                    tellraw(text="] "),
+                    tellraw(text="Server restart will be cancelled.",color="orange")
+                )
+                self.bot.console_pane.send_keys("tellraw @a " + combined)
+                return
             return
         
         if message.author.bot:

@@ -28,8 +28,22 @@ async def startup():
     # Get the tmux server object.
     Server = libtmux.Server()
 
-    # Create a new session. This throws if a session exists already!
-    session = Server.new_session(config.tmux_data["tmux_session"])
+    session = None
+    session_existed = False
+
+    try:
+        # Create a new session. This throws if a session exists already!
+        session = Server.new_session(config.tmux_data["tmux_session"])
+    except:
+        LOG.info("tmux session already exists. Joining to it instead.")
+        for _session in Server.sessions:
+            if _session.name == config.tmux_data["tmux_session"]:
+                session = _session
+                session_existed = True
+                break
+    
+    if session == None:
+        raise Exception("Tmux session existed but also it did not. Weird.")
 
     # Get the main window.
     console_win = session.windows[0]
