@@ -43,7 +43,7 @@ def get_tmux_pid(tmux_session_name: str):
     
     # Get the lines that are children of the session line.
     children = []
-    for i in range(session_line + 1, lines.length):
+    for i in range(session_line + 1, len(lines)):
         line = lines[i]
         if line.startswith("===== session"):
             break
