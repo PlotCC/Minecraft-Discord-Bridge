@@ -90,8 +90,13 @@ def get_tmux_pid(tmux_session_name: str):
         # need to go back up the tree.
         if leading_spaces_count < current_node["_leading_spaces"]:
             # Repeatedly grab the parent node until the leading space count is below, or the parent is null.
-            while current_node["_leading_spaces"] > leading_spaces_count and current_node["parent"]:
+            while current_node["_leading_spaces"] >= leading_spaces_count and current_node["parent"]:
                 current_node = current_node["parent"]
+
+            new_child = new_node()
+            new_child["parent"] = current_node
+            current_node["children"].append(new_child)
+            current_node = new_child
         
         # If the number of leading spaces is greater than the current node, we
         # should create a new child node.
