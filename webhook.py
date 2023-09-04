@@ -61,6 +61,8 @@ async def main():
 
         print("The following regex actions are being registered:")
 
+        # TODO: Remove extra regexes (server startup and shutdown). These can now be detected by the server cog, and we want to have as little regexes as possible.
+
         # Player chatted action
         async def player_message(match):
             print("Player message, sending...")
@@ -155,9 +157,9 @@ async def main():
                 if need_log_reopen():
                     f = open_latest_log()
             
-            # Delay between checking each line. I assume 20 lines per second is more than enough?
+            # Delay between checking each line. I assume 100 lines per second is more than enough?
             # A better delay system will be set up soon, this is mostly temporary.
-            time.sleep(0.05)
+            time.sleep(0.01)
 
 
 if __name__ == "__main__":
