@@ -288,7 +288,7 @@ class ServerCog(commands.Cog):
                 self.crash_lock = True
                 await self.channel.send(embed=discord.Embed(
                     color=0xff0000,
-                    description="Crash loop detected, server startup locked."
+                    description=":no_entry: Crash loop detected, server startup locked."
                 ))
             else:
                 LOG.warn(f"Server crashed ({self.crash_count} times in a row), restarting.")
@@ -297,7 +297,7 @@ class ServerCog(commands.Cog):
                 self.restart_lock = False
                 await self.channel.send(embed=discord.Embed(
                     color=0xffff00 if self.crash_count < 4 else 0xffaa00,
-                    description="Server crash detected, restarting." if self.crash_count < 4 else "Server crash detected, restarting. Server is potentially in a crash-loop."
+                    description=":warning: Server crash detected, restarting." if self.crash_count < 4 else ":warning: Server crash detected, restarting. Server is potentially in a crash-loop."
                 ))
 
 
