@@ -249,11 +249,15 @@ class ServerCog(commands.Cog):
     @tasks.loop(seconds=5)
     async def check_server_running(self):
         if not self.running:
+            self.bot.block_chat = True
             return
         
         server_process = get_server_process()
         
-        if not server_process:
+        if server_process:
+            self.bot.block_chat = False
+        else:
+            self.bot.block_chat = True
             # Server stopped!
             LOG.warn("Server stopped!")
             if self.stopping:
@@ -292,8 +296,8 @@ class ServerCog(commands.Cog):
                 self.running = True
                 self.restart_lock = False
                 await self.channel.send(embed=discord.Embed(
-                    color=0xffff00 if self.crash_count <= 4 else 0xffaa00,
-                    description="Server crash detected, restarting." if self.crash_count <= 4 else "Server crash detected, restarting. Server is potentially in a crash-loop."
+                    color=0xffff00 if self.crash_count < 4 else 0xffaa00,
+                    description="Server crash detected, restarting." if self.crash_count < 4 else "Server crash detected, restarting. Server is potentially in a crash-loop."
                 ))
 
 

@@ -16,6 +16,9 @@ class BridgeCog(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if self.bot.block_chat:
+            return # Security feature: Do not allow chat until the server is confirmed online, otherwise tellraw messages will be sent to the shell.
+
         if message.author == self.bot.user:
             # Parse message embed for server restart notifications.
             # This is obviously the best way to do this.
