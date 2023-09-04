@@ -100,6 +100,7 @@ class ServerCog(commands.Cog):
 
         # Start the autmatic tasks.
         self.automatic_stop_task.start()
+        self.check_server_running.start()
 
     @app_commands.command(name="shutdown", description="Shut down the Minecraft server.")
     @app_commands.checks.cooldown(1, 180.0)
@@ -313,14 +314,14 @@ class ServerCog(commands.Cog):
             if not java_process:
                 base_embed = discord.Embed(
                     color=0xff00ff,
-                    description="Session already exists, and no java process was found. Assuming the server is offline."
+                    description="Session already exists and no java process was found. Assuming the server is offline."
                 )
                 self.running = False
                 self.restart_lock = False
             else:
                 base_embed = discord.Embed(
                     color=0xff00ff,
-                    description="Session already exists, and a java process was found. Assuming the server is online."
+                    description="Session already exists and a java process was found. Assuming the server is online."
                 )
                 self.running = True
                 self.restart_lock = False
@@ -345,6 +346,8 @@ class ServerCog(commands.Cog):
             self.automatic_restart_task.stop()
         if self.automatic_stop_task.is_running():
             self.automatic_stop_task.stop()
+        if self.check_server_running.is_running():
+            self.check_server_running.cancel() # This one doesn't need to safely exit.
         
         try:
             await self.channel.send(":warning: Server cog unloaded.")
