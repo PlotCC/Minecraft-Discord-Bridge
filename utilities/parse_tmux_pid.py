@@ -51,8 +51,8 @@ def get_tmux_pid(tmux_session_name: str):
 
     def new_node():
         return {
-            "process_name": "",
-            "pid": "",
+            "process_name": tmux_session_name,
+            "pid": tmux_session_name,
             "_leading_spaces": -1, # Start it negative so we know this is the root node.
             "children": [],
             "parent": None,
@@ -100,9 +100,14 @@ def get_tmux_pid(tmux_session_name: str):
             new_child["parent"] = current_node
             current_node["children"].append(new_child)
             current_node = new_child
-        
+
         # If the number of leading spaces is equal to the current node, we
-        # don't need to do anything.
+        # create a new node and append it to the current node's parent.
+        else:
+            new_child = new_node()
+            new_child["parent"] = current_node["parent"]
+            current_node["parent"].append(new_child)
+            current_node = new_child
 
         # Set the current node's values.
         current_node["process_name"] = process_name
