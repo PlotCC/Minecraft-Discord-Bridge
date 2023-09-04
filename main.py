@@ -65,6 +65,9 @@ async def startup():
     # Start the bridge.
     bot.bridge_pane.send_keys(config.programs["bridge"])
 
+    # Block chat until the server is confirmed online.
+    bot.block_chat = True
+
     async with bot:
         # Collect cogs and load them.
         for extension in [f.replace(".py","") for f in os.listdir(f"{BOT_SRC}/cogs") if os.path.isfile(os.path.join(f"{BOT_SRC}/cogs",f))]:
