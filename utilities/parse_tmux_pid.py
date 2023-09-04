@@ -106,7 +106,7 @@ def get_tmux_pid(tmux_session_name: str):
         else:
             new_child = new_node()
             new_child["parent"] = current_node["parent"]
-            current_node["parent"].append(new_child)
+            current_node["parent"]["children"].append(new_child)
             current_node = new_child
 
         # Set the current node's values.
