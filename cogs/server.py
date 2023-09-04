@@ -19,6 +19,23 @@ def start_server(bot):
     bot.console_pane.send_keys("cd " + config.server["root"])
     bot.console_pane.send_keys(config.programs["minecraft"])
 
+def get_server_process():
+    # Get the tmux session.
+    tree = get_tmux_pid(config.tmux_data["tmux_session"])
+
+    # Check if java process exists with the -jar argument.
+    # NOTE: If we change the amount of tmux windows in the future, we will likely need to change this.
+
+    # Get the java process.
+    def descend(node):
+        for child in node["children"]:
+            if child["process_name"] == "java" and child["arguments"].endswith("nogui"): 
+                return child
+            else:
+                return descend(child)
+
+    return descend(tree)
+
 def get_countdown_message(time:int):
     if time > 3600 and time % 3600 == 0:
         return f"{time // 3600} hours"
@@ -71,11 +88,15 @@ class ServerCog(commands.Cog):
         self.bot = bot
         self.session_message = None
         self.channel = None
+        self.server_pid = None
         self.running = False
+        self.stopping = False
         self.cancel_restart = False
         self.restart_lock = False
+        self.crash_lock = False
         self.skip_restart = 0
         self.restart_time = 0
+        self.crash_count = 0
 
         # Start the autmatic tasks.
         self.automatic_stop_task.start()
@@ -86,8 +107,8 @@ class ServerCog(commands.Cog):
     async def shutdown(self, interaction: discord.Interaction) -> None:
         if self.running:
             stop_server(self.bot)
+            self.stopping = False
             await interaction.response.send_message("Server is shutting down. Please give it a minute before attempting to start it again.")
-            self.running = False
         else:
             await interaction.response.send_message("Server is not currently running.", ephemeral=True)
             await asyncio.sleep(4)
@@ -98,6 +119,12 @@ class ServerCog(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def startup(self, interaction: discord.Interaction) -> None:
         if not self.running:
+            if self.crash_lock:
+                await interaction.response.send_message("Server startup is currently locked due to a crash-loop.", ephemeral=True)
+                await asyncio.sleep(4)
+                await interaction.delete_original_response()
+                return
+            
             start_server(self.bot)
             await interaction.response.send_message("Server is starting up.")
             self.running = True
@@ -211,6 +238,62 @@ class ServerCog(commands.Cog):
             self.restart_time = config.server["restart_delay"] + 1
             if not self.automatic_restart_task.is_running():
                 self.automatic_restart_task.start()
+    
+    @tasks.loop(count=1)
+    async def check_crash_loop(self):
+        await asyncio.sleep(300)
+        self.check_crash_loop.stop()
+
+    
+    # Check that the server is still running. If the server shuts down unexpectedly, this will detect it.
+    @tasks.loop(seconds=5)
+    async def check_server_running(self):
+        if not self.running:
+            return
+        
+        server_process = get_server_process()
+        
+        if not server_process:
+            # Server stopped!
+            LOG.warn("Server stopped!")
+            if self.stopping:
+                self.running = False
+                self.stopping = False
+                self.crash_count = 0
+                return # Nothing to worry about!
+            
+            self.running = False
+            self.restart_lock = False
+
+            # Check if the crash loop task is running
+            if self.check_crash_loop.is_running():
+                # If it is, that means we crashed within 5 minutes of crashing. Increment crash count.
+                self.crash_count += 1
+            else:
+                # If it isn't, it means we are outside the crash count. Reset the counter.
+                self.crash_count = 1
+            
+            self.check_crash_loop.cancel()
+            self.check_crash_loop.start()
+
+            if self.crash_count >= 5:
+                LOG.error("Server crashed 5 times in a row, not restarting.")
+                self.restart_lock = True
+                self.crash_lock = True
+                await self.channel.send(embed=discord.Embed(
+                    color=0xff0000,
+                    description="Crash loop detected, server startup locked."
+                ))
+            else:
+                LOG.warn("Server crashed, restarting.")
+                start_server(self.bot)
+                self.running = True
+                self.restart_lock = False
+                await self.channel.send(embed=discord.Embed(
+                    color=0xffff00,
+                    description="Server crash detected, restarting."
+                ))
+
 
     async def get_channel(self):
         LOG.info("Getting channel.")
@@ -223,31 +306,25 @@ class ServerCog(commands.Cog):
             # NOTE: If we change the amount of tmux windows in the future, we will likely need to change this.
 
             # Get the java process.
-            def descend(node):
-                for child in node["children"]:
-                    if child["process_name"] == "java" and child["arguments"].endswith("nogui"): 
-                        return child # This will find the first java process that ends with nogui, which should be the server.
-                    else:
-                        return descend(child)
-            
-            java_process = descend(tree)
+            java_process = get_server_process()
 
             base_embed = None
 
             if not java_process:
-                base_embed = embed=discord.Embed(
+                base_embed = discord.Embed(
                     color=0xff00ff,
                     description="Session already exists, and no java process was found. Assuming the server is offline."
                 )
                 self.running = False
                 self.restart_lock = False
             else:
-                base_embed = embed=discord.Embed(
+                base_embed = discord.Embed(
                     color=0xff00ff,
                     description="Session already exists, and a java process was found. Assuming the server is online."
                 )
                 self.running = True
                 self.restart_lock = False
+                self.server_pid = java_process["pid"]
             
             base_embed.set_footer(
                 text="Use /set-state to override this."
