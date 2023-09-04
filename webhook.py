@@ -159,7 +159,7 @@ async def main():
             
             # Delay between checking each line. I assume 100 lines per second is more than enough?
             # A better delay system will be set up soon, this is mostly temporary.
-            time.sleep(0.01)
+            await asyncio.sleep(0.01)
 
 
 if __name__ == "__main__":
