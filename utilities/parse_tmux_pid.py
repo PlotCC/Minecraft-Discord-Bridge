@@ -110,5 +110,6 @@ def get_tmux_pid(tmux_session_name: str):
         current_node["_leading_spaces"] = leading_spaces_count
         current_node["arguments"] = arguments
     
-
+    # Return the tree.
+    return tree
     
