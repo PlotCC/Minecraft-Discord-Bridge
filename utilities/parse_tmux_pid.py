@@ -53,7 +53,7 @@ def get_tmux_pid(tmux_session_name: str):
         return {
             "process_name": "",
             "pid": "",
-            "_leading_spaces": 0,
+            "_leading_spaces": -1, # Start it negative so we know this is the root node.
             "children": [],
             "parent": None,
             "arguments": ""
