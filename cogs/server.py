@@ -122,8 +122,6 @@ class ServerCog(commands.Cog):
         if not self.running:
             if self.crash_lock:
                 await interaction.response.send_message("Server startup is currently locked due to a crash-loop.", ephemeral=True)
-                await asyncio.sleep(4)
-                await interaction.delete_original_response()
                 return
             
             start_server(self.bot)
@@ -243,6 +241,7 @@ class ServerCog(commands.Cog):
     @tasks.loop(count=1)
     async def check_crash_loop(self):
         await asyncio.sleep(300)
+        LOG.info("Crash loop timeout.")
         self.check_crash_loop.stop()
 
     
@@ -288,13 +287,13 @@ class ServerCog(commands.Cog):
                     description="Crash loop detected, server startup locked."
                 ))
             else:
-                LOG.warn("Server crashed, restarting.")
+                LOG.warn(f"Server crashed ({self.crash_count} times in a row), restarting.")
                 start_server(self.bot)
                 self.running = True
                 self.restart_lock = False
                 await self.channel.send(embed=discord.Embed(
-                    color=0xffff00,
-                    description="Server crash detected, restarting."
+                    color=0xffff00 if self.crash_count <= 4 else 0xffaa00,
+                    description="Server crash detected, restarting." if self.crash_count <= 4 else "Server crash detected, restarting. Server is potentially in a crash-loop."
                 ))
 
 
