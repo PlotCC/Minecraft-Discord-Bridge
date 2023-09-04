@@ -274,7 +274,9 @@ class ServerCog(commands.Cog):
                 # If it isn't, it means we are outside the crash count. Reset the counter.
                 self.crash_count = 1
             
+            self.check_crash_loop.stop()
             self.check_crash_loop.cancel()
+            await asyncio.sleep(1) # Hopefully this is enough for the task to stop?
             self.check_crash_loop.start()
 
             if self.crash_count >= 5:
