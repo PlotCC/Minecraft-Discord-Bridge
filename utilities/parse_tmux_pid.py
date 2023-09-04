@@ -27,7 +27,7 @@ def get_tmux_pid(tmux_session_name: str):
 
     # Get the line that starts with the session name.
     session_line = None
-    for i in range(0, lines.length):
+    for i in range(0, len(lines)):
         line = lines[i]
         for j in range(0, 10):
             search = f"===== session ${j}:{tmux_session_name} ====="
