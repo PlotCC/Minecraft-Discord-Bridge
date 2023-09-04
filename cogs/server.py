@@ -34,12 +34,8 @@ def get_countdown_message(time:int):
         return "1 minute"
     if time == 30:
         return "30 seconds"
-    if time <= 10 and time > 1:
-        return f"{time} seconds"
-    if time == 1:
-        return "1 second"
     if time == 0:
-        return "0 seconds"
+        return "now"
 
 def get_time_after(time: datetime.time, seconds: int) -> datetime.time:
     hour = time.hour
