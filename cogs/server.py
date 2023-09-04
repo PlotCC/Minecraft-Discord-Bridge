@@ -4,8 +4,10 @@ from discord import app_commands
 import datetime
 import logging
 import asyncio
+import re
 
 import config
+from utilities.parse_tmux_pid import get_tmux_pid
 
 LOG = logging.getLogger("MC-SERVER")
 
@@ -214,12 +216,44 @@ class ServerCog(commands.Cog):
         LOG.info("Getting channel.")
         self.channel = self.bot.get_channel(config.bot["channel_id"])
         if self.bot.session_existed:
-            self.session_message = await self.channel.send(
-                embed=discord.Embed(
+            # Get the tmux session.
+            tree = get_tmux_pid(config.tmux_data["tmux_session"])
+
+            # Check if java process exists with the -jar argument.
+            # NOTE: If we change the amount of tmux windows in the future, we will likely need to change this.
+
+            # Get the java process.
+            def descend(node):
+                for child in node["children"]:
+                    if child["process_name"] == "java" and child["arguments"].endswith("nogui"): 
+                        return child # This will find the first java process that ends with nogui, which should be the server.
+                    else:
+                        return descend(child)
+            
+            java_process = descend(tree)
+
+            base_embed = None
+
+            if not java_process:
+                base_embed = embed=discord.Embed(
                     color=0xff00ff,
-                    description=f":warning: Session already exists and I was unable to determine if the server was online. Please use /set-state to configure."
+                    description="Session already exists, and no java process was found. Assuming the server is offline."
                 )
+                self.running = False
+                self.restart_lock = False
+            else:
+                base_embed = embed=discord.Embed(
+                    color=0xff00ff,
+                    description="Session already exists, and a java process was found. Assuming the server is online."
+                )
+                self.running = True
+                self.restart_lock = False
+            
+            base_embed.set_footer(
+                text="Use /set-state to override this."
             )
+
+            self.session_message = await self.channel.send(embed=base_embed)
 
     @commands.Cog.listener()
     async def on_ready(self):
