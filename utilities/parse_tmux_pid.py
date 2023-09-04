@@ -20,7 +20,7 @@ def get_tmux_pid(tmux_session_name: str):
     """
 
     # Get the output of the tmux_pid.sh file.
-    output = subprocess.run(["utilities/tmux_pid.sh"], stdout=subprocess.PIPE).decode("utf-8")
+    output = subprocess.run(["utilities/tmux_pid.sh"], stdout=subprocess.PIPE).stdout.decode("utf-8")
 
     # Split the output into lines.
     lines = output.split("\n")
