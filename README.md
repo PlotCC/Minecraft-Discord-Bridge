@@ -20,16 +20,10 @@ Current feature list:
 - Webhook for Minecraft --> Discord communication.
 - Tmux setup to look fancy.
 - Starts the minecraft server for you.
-- Bot that just echoes "Bruh"
-
-Planned feature list:
-
-- [x] [Requirement: Send messages from Discord to Minecraft (#1)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/1)
-- [x] [Requirement: Fancify the output in both Minecraft and Discord (#2)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/2)
-- [x] [Requirement: Autmatic Minecraft Reboots (#3)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/3)
-- [x] [Nice-to-have: `/list` / `/online` command to get currently online users (#4)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/4)
-- [ ] [Nice-to-have: More events detected (deaths, advancements, ...) (#5)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/5)
-- [ ] [Nice-to-have: Minecraft/Discord nickname linking (#6)](https://github.com/PlotCC/Minecraft-Discord-Bridge/issues/6)
+- Semi-fancy output.
+- Automatic server restarts,
+  - Also occurs on unscheduled shutdowns (ie: crashes, etc)
+- Crash-loop detection
 
 ## Python pip modules installation string
 ```
