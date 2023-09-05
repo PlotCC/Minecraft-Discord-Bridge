@@ -61,8 +61,6 @@ async def main():
 
         print("The following regex actions are being registered:")
 
-        # TODO: Remove extra regexes (server startup and shutdown). These can now be detected by the server cog, and we want to have as little regexes as possible.
-
         # Player chatted action
         async def player_message(match):
             print("Player message, sending...")
@@ -116,8 +114,8 @@ async def main():
         async def console_message(match):
             print("Console message sending...")
             await whb.on_console_message(match.group(1))
-        regexes.insert(0, regex_action(config.webhook["regex"]["console_message"], console_message, "Console message"))
-        print_action(config.webhook["regex"]["console_message"], "Send console messages to Discord.")
+        # regexes.insert(0, regex_action(config.webhook["regex"]["console_message"], console_message, "Console message"))
+        # print_action(config.webhook["regex"]["console_message"], "Send console messages to Discord.")
 
         # Advancement action
         async def advancement(match):
@@ -137,7 +135,6 @@ async def main():
             line = f.readline()
             if line:
                 if line != "" and line != "\n":
-                    matched = False
                     # For each action
                     for action in regexes:
                         # If the action's regex matched
@@ -145,7 +142,6 @@ async def main():
                         if match:
                             # Run the action.
                             print(f"Match: {line}")
-                            matched = True
                             await action.on_match(match)
                             break
                 elif line == "\n":
