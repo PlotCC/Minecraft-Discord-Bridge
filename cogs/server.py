@@ -84,16 +84,18 @@ class ServerCog(commands.Cog):
 
         This also does automatic restarts.
     """
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.session_message = None
         self.channel = None
+        self.notification_channel = None
         self.server_pid = None
         self.running = False
         self.stopping = False
         self.cancel_restart = False
         self.restart_lock = False
         self.crash_lock = False
+        self.notifications = False
         self.skip_restart = 0
         self.restart_time = 0
         self.crash_count = 0
@@ -286,24 +288,69 @@ class ServerCog(commands.Cog):
                 LOG.error("Server crashed 5 times in a row, not restarting.")
                 self.restart_lock = True
                 self.crash_lock = True
-                await self.channel.send(embed=discord.Embed(
+                
+                content = None
+                discord.Embed(
                     color=0xff0000,
                     description=":no_entry: Crash loop detected, server startup locked."
-                ))
+                )
+                if self.notifications:
+                    if config.webhook["ping_role_in_bridge"]:
+                        content = self.notification_ping
+                    else:
+                        await self.notification_channel.send(self.notification_ping + " The server has crashed 5 times in a row and has been locked. Please investigate.")
+                        embed.set_footer("Operators have been notified.")
+                
+                await self.channel.send(
+                    content=content,
+                    embed=embed
+                )
             else:
                 LOG.warn(f"Server crashed ({self.crash_count} times in a row), restarting.")
                 start_server(self.bot)
                 self.running = True
                 self.restart_lock = False
-                await self.channel.send(embed=discord.Embed(
+
+                content = None
+                embed = discord.Embed(
                     color=0xffff00 if self.crash_count < 4 else 0xffaa00,
                     description=":warning: Server crash detected, restarting." if self.crash_count < 4 else ":warning: Server crash detected, restarting. Server is potentially in a crash-loop."
-                ))
+                )
+                if self.notifications:
+                    if config.webhook["ping_role_in_bridge"]:
+                        content = self.notification_ping
+                    else:
+                        await self.notification_channel.send(self.notification_ping + " The server has crashed and is restarting.")
+                        embed.set_footer("Operators have been notified.")
+                
+                await self.channel.send(
+                    content=content,
+                    embed=embed
+                )
 
 
-    async def get_channel(self):
-        LOG.info("Getting channel.")
+    async def get_channels(self):
+        LOG.info("Getting channels.")
+
+        LOG.info("  Bridge channel.")
         self.channel = self.bot.get_channel(config.bot["channel_id"])
+        LOG.info("    Got bridge channel.")
+
+        LOG.info("  Notification channel (if enabled)")
+        self.notifications = config.webhook["enable_notifications"]
+        if self.notifications:
+            self.notification_ping = "<@" + str(config.webhook["notification_role_id"]) + ">"
+
+            if config.webhook["ping_role_in_bridge"]:
+                LOG.info("    Not getting notification channel, ping_role_in_bridge is true. Ping will be appended to the message in the bridge channel.")
+            else:
+                self.notification_channel = self.bot.get_channel(config.bot["notification_channel_id"])
+                LOG.info("    Got notification channel.")
+        else:
+            LOG.info("    Not getting notification channel, notifications are disabled.")
+
+        # TODO: Confirm that the channels were actually "gotten" in the above code.
+
         if self.bot.session_existed:
             # Get the tmux session.
             tree = get_tmux_pid(config.tmux_data["tmux_session"])
@@ -340,11 +387,11 @@ class ServerCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        await self.get_channel()
+        await self.get_channels()
     
     async def cog_load(self): # If the cog reloads, this can get the channel again.
         if self.bot.is_ready():
-            await self.get_channel()
+            await self.get_channels()
     
     async def cog_unload(self):
         if self.automatic_restart_task.is_running():
