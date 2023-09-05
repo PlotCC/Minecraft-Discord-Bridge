@@ -33,5 +33,6 @@ Planned feature list:
 
 ## Python pip modules installation string
 ```
-pip install -U discord.py libtmux zmq minecraftTellrawGenerator asyncio aiohttp requests tzdata
+pip install -U discord.py libtmux zmq minecraftTellrawGenerator asyncio aiohttp requests tzdata emoji
 ```
+**Note:** If you are running python version below 3.9, you will need to install `backports.zoneinfo` as well.

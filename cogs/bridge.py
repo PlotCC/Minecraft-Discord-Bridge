@@ -1,9 +1,14 @@
 import re
 import discord
+import emoji
 from discord.ext import commands
 from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
 import config
+
+emoji_match = "<a?(:.*?:)\d*?>"
+def parse_emoji(content):
+    return emoji.demojize(re.sub(emoji_match, "\1", content))
 
 class BridgeCog(commands.Cog):
     def __init__(self, bot):
@@ -11,6 +16,9 @@ class BridgeCog(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if self.bot.block_chat:
+            return # Security feature: Do not allow chat until the server is confirmed online, otherwise tellraw messages will be sent to the shell.
+
         if message.author == self.bot.user:
             # Parse message embed for server restart notifications.
             # This is obviously the best way to do this.
@@ -26,6 +34,16 @@ class BridgeCog(commands.Cog):
                         tellraw(text=match.group(1),color="yellow")
                     )
                     self.bot.console_pane.send_keys("tellraw @a " + combined)
+                    return
+            if message.content == "Server restart will be cancelled.":
+                combined = tellraw.multiple_tellraw(
+                    tellraw(text="["),
+                    tellraw(text="Server",color="red"),
+                    tellraw(text="] "),
+                    tellraw(text="Server restart will be cancelled.",color="orange")
+                )
+                self.bot.console_pane.send_keys("tellraw @a " + combined)
+                return
             return
         
         if message.author.bot:
@@ -35,7 +53,7 @@ class BridgeCog(commands.Cog):
             return
 
         a = tellraw(
-            text = "["
+            text="["
         )
         b = tellraw(
             text="Discord",
@@ -51,7 +69,7 @@ class BridgeCog(commands.Cog):
             d = tellraw(
                 text=message.author.display_name,
                 insertion="<@" + str(message.author.id) + "> ",
-                hover=tellraw(text="Click to reply!", color="yellow")
+                hover=tellraw(text="Shift+click to @ this user!", color="yellow")
             )
             
         else:
@@ -61,7 +79,7 @@ class BridgeCog(commands.Cog):
                 hover=tellraw(text=message.author.mention, color="yellow")
             )
         e = tellraw(
-            text=": " + message.content
+            text=": " + parse_emoji(message.content)
         )
 
         combined = None
@@ -73,9 +91,27 @@ class BridgeCog(commands.Cog):
             for attachment in message.attachments:
                 i += 1
                 attachment_list.append(tellraw(
-                    text = f" [attachment {i}]",
-                    url = attachment.url,
-                    color="cyan"
+                    text="[" if message.content == "" and i == 1 else " ["
+                ))
+                attachment_list.append(tellraw(
+                    text=f"attachment {i}",
+                    url=attachment.url,
+                    color="aqua",
+                    hover=tellraw.multiple_tellraw(
+                        tellraw(
+                            text="Click to open "
+                        ),
+                        tellraw(
+                            text=attachment.url,
+                            color="aqua"
+                        ),
+                        tellraw(
+                            text="."
+                        )
+                    )
+                ))
+                attachment_list.append(tellraw(
+                    text="]"
                 ))
 
             combined = tellraw.multiple_tellraw(a, b, c, d, e, *attachment_list)
@@ -123,7 +159,7 @@ class BridgeCog(commands.Cog):
                 italic=True
             ),
             tellraw(
-                text=": " + before.content + "\n",
+                text=": " + parse_emoji(before.content) + "\n",
                 color="dark_gray",
                 hover=tellraw(text="This is the old message."),
                 italic=True
@@ -131,7 +167,7 @@ class BridgeCog(commands.Cog):
 
             # Line 2: new message
             tellraw(
-                text = "["
+                text="["
             ),
             tellraw(
                 text="Discord",
@@ -155,7 +191,7 @@ class BridgeCog(commands.Cog):
                 color="gold"
             ),
             tellraw(
-                text=after.content,
+                text=parse_emoji(after.content),
                 hover=tellraw(text="This is the new message."),
                 color="gold"
             )

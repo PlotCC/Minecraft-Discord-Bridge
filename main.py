@@ -28,23 +28,45 @@ async def startup():
     # Get the tmux server object.
     Server = libtmux.Server()
 
-    # Create a new session. This throws if a session exists already!
-    session = Server.new_session(config.tmux_data["tmux_session"])
+    session = None
+    bot.session_existed = False
+
+    try:
+        # Create a new session. This throws if a session exists already!
+        session = Server.new_session(config.tmux_data["tmux_session"])
+    except:
+        LOG.info("tmux session already exists. Joining to it instead.")
+        for _session in Server.sessions:
+            if _session.name == config.tmux_data["tmux_session"]:
+                session = _session
+                bot.session_existed = True
+                break
+    
+    if not session:
+        raise Exception("Tmux session existed but also it did not. Weird.")
 
     # Get the main window.
     console_win = session.windows[0]
     console_win.rename_window(config.tmux_data["window_name"])
     # Set the layout to look fancy.
-    console_win.select_layout("main-vertical")
+
+    if not bot.session_existed: # Only set the layout if it wasn't already set.
+        console_win.select_layout("main-vertical")
 
     # Get the console window pane.
     bot.console_pane = console_win.panes[0]
 
     # Create the pane for the bridge.
-    bot.bridge_pane = console_win.split_window(attach=True)
+    if bot.session_existed:
+        bot.bridge_pane = console_win.panes[1]
+    else:
+        bot.bridge_pane = console_win.split_window(attach=True)
 
     # Start the bridge.
     bot.bridge_pane.send_keys(config.programs["bridge"])
+
+    # Block chat until the server is confirmed online.
+    bot.block_chat = True
 
     async with bot:
         # Collect cogs and load them.
