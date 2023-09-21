@@ -301,7 +301,7 @@ class ServerCog(commands.Cog):
                     description=":no_entry: Crash loop detected, server startup locked."
                 )
                 if self.notifications:
-                    if config.webhook["ping_role_in_bridge"]:
+                    if config.server["ping_role_in_bridge"]:
                         content = self.notification_ping
                     else:
                         await self.notification_channel.send(self.notification_ping + " The server has crashed 5 times in a row and has been locked. Please investigate.")
@@ -323,7 +323,7 @@ class ServerCog(commands.Cog):
                     description=":warning: Server crash detected, restarting." if self.crash_count < 4 else ":warning: Server crash detected, restarting. Server is potentially in a crash-loop."
                 )
                 if self.notifications:
-                    if config.webhook["ping_role_in_bridge"]:
+                    if config.server["ping_role_in_bridge"]:
                         content = self.notification_ping
                     else:
                         await self.notification_channel.send(self.notification_ping + " The server has crashed and is restarting.")
@@ -343,14 +343,14 @@ class ServerCog(commands.Cog):
         LOG.info("    Got bridge channel.")
 
         LOG.info("  Notification channel (if enabled)")
-        self.notifications = config.webhook["enable_notifications"]
+        self.notifications = config.server["enable_notifications"]
         if self.notifications:
-            self.notification_ping = "<@" + str(config.webhook["notification_role_id"]) + ">"
+            self.notification_ping = "<@" + str(config.server["notification_role_id"]) + ">"
 
-            if config.webhook["ping_role_in_bridge"]:
+            if config.server["ping_role_in_bridge"]:
                 LOG.info("    Not getting notification channel, ping_role_in_bridge is true. Ping will be appended to the message in the bridge channel.")
             else:
-                self.notification_channel = self.bot.get_channel(config.bot["notification_channel_id"])
+                self.notification_channel = self.bot.get_channel(config.server["notification_channel_id"])
                 LOG.info("    Got notification channel.")
         else:
             LOG.info("    Not getting notification channel, notifications are disabled.")
