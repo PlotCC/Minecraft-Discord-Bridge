@@ -119,7 +119,7 @@ class ServerCog(commands.Cog):
     async def shutdown(self, interaction: discord.Interaction) -> None:
         if self.running:
             stop_server(self.bot)
-            self.stopping = False
+            self.stopping = True
             await interaction.response.send_message(
                 "Server is shutting down. Please give it a minute before attempting to start it again."
             )
