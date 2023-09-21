@@ -361,7 +361,7 @@ class ServerCog(commands.Cog):
                 self.crash_lock = True
 
                 content = None
-                discord.Embed(
+                embed = discord.Embed(
                     color=0xFF0000,
                     description=":no_entry: Crash loop detected, server startup locked.",
                 )
