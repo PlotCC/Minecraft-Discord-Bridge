@@ -176,6 +176,12 @@ class ServerCog(commands.Cog):
             await asyncio.sleep(4)
             await self.session_message.delete()
             self.session_message = None
+    
+    @app_commands.command(name="unlock", description="Unlock the server startup after being stuck in a crash loop.")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def unlock(self, interaction: discord.Interaction) -> None:
+        self.crash_lock = False
+        await interaction.response.send_message("Server startup unlocked.", ephemeral=True, delete_after=4)
 
     @app_commands.command(name="reboot-schedule", description="Display the automatic restart schedule of the Minecraft server.")
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
@@ -352,9 +358,6 @@ class ServerCog(commands.Cog):
         # TODO: Confirm that the channels were actually "gotten" in the above code.
 
         if self.bot.session_existed:
-            # Get the tmux session.
-            tree = get_tmux_pid(config.tmux_data["tmux_session"])
-
             # Check if java process exists with the -jar argument.
             # NOTE: If we change the amount of tmux windows in the future, we will likely need to change this.
 
