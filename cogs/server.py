@@ -477,6 +477,8 @@ class ServerCog(commands.Cog):
             self.automatic_stop_task.stop()
         if self.check_server_running.is_running():
             self.check_server_running.cancel()  # This one doesn't need to safely exit.
+        if self.check_crash_loop.is_running():
+            self.check_crash_loop.cancel() # This one doesn't need to safely exit.
 
         try:
             await self.channel.send(":warning: Server cog unloaded.")
