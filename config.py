@@ -33,7 +33,15 @@ server = dict(
     # hour, then at 30 mins, 15 mins, 10 mins, 5 mins, 1 min, 30 seconds, and
     # finally in a countdown from 10 seconds to 0.
     restart_delay = 3600, # 1 hour by default.
-    root = "/somewhere/" # Absolute path to the minecraft server root folder
+    root = "/somewhere/", # Absolute path to the minecraft server root folder
+
+    # This section controls whether or not the bot pings you when the server crashes, and where/who it should ping.
+    enable_notifications = True,
+    notification_channel_id = 0,
+    notification_role_id = 0,
+    # If you want the bot to ping this role in the same message that it notifies the bridge channel of a crash, set this to True.
+    # Otherwise, it will send a separate message to the notification channel.
+    ping_role_in_bridge = False,
 )
 
 tmux_data = dict(
