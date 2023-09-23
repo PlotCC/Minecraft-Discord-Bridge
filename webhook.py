@@ -50,9 +50,129 @@ class regex_action:
             print(f"Got match ({self.name})!")
             return match
 
+def setup_action(callback: function, what_do: str):
+    print(
+        f"  Event: '{callback.__name__}'\n    Action: {what_do}\n    Enabled: {config.webhook['actions_enabled'][callback.__name__]}\n"
+    )
+    return regex_action(config.webhook["regex"][callback.__name__], callback, what_do)
 
-def print_action(regex: str, what_do: str):
-    print(f"  Regex: '{regex}'\n    Action: {what_do}\n")
+
+def setup_actions(whb: Bridge):
+    actions = []
+
+    def insert_action(action: regex_action):
+        if config.webhook["actions_enabled"][action.name]:
+            actions.insert(0, action)
+
+    # Player chatted action
+    async def player_message(match):
+        print("Player message, sending...")
+        await whb.on_player_message(match.group(1), match.group(2))
+
+    insert_action(
+        setup_action(
+            player_message,
+            "Send messages that players send ingame to Discord.",
+        ),
+    )
+
+    # Player join action
+    async def player_joined(match):
+        print("Player joined, sending...")
+        await whb.on_player_join(match.group(1))
+
+    insert_action(
+        setup_action(
+            player_joined,
+            "Send player join events to Discord.",
+        ),
+    )
+
+    # Player leave action
+    async def player_left(match):
+        print("Player left, sending...")
+        await whb.on_player_leave(match.group(1))
+
+    insert_action(
+        setup_action(
+            player_left,
+            "Send player leave events to Discord.",
+        ),
+    )
+
+    # Server starting action
+    async def server_starting(match):
+        print("Server starting, sending...")
+        await whb.on_server_starting()
+
+    insert_action(
+        setup_action(
+            server_starting,
+            "Send server starting events to Discord.",
+        ),
+    )
+
+    # Server started action
+    async def server_started(match):
+        print("Server started, sending...")
+        await whb.on_server_started()
+
+    insert_action(
+        setup_action(
+            server_started,
+            "Send server started events to Discord.",
+        ),
+    )
+
+    # Server stopping action
+    async def server_stopping(match):
+        print("Server stopping, sending...")
+        await whb.on_server_stopping()
+
+    insert_action(
+        setup_action(
+            server_stopping,
+            "Send server stop events to Discord.",
+        ),
+    )
+
+    # Server list action
+    async def server_list(match):
+        print("Server list sending...")
+        await whb.on_server_list(match.group(1), match.group(2), match.group(3))
+
+    insert_action(
+        setup_action(
+            server_list,
+            "Send server list events to Discord.",
+        ),
+    )
+
+    # Console message action
+    async def console_message(match):
+        print("Console message sending...")
+        await whb.on_console_message(match.group(1))
+
+    insert_action(
+        setup_action(
+            console_message,
+            "Send console messages to Discord.",
+        ),
+    )
+
+    # Advancement action
+    async def advancement(match):
+        print("Advancement sending...")
+        await whb.on_advancement(match.group(1), match.group(2))
+
+    insert_action(
+        setup_action(
+            advancement,
+            "Send advancement events to Discord.",
+        ),
+    )
+
+    return actions
 
 
 async def main():
@@ -63,153 +183,10 @@ async def main():
         whb = Bridge(webhook)  # Create the webhook bridge object.
 
         print("Setting up regexes.")
-        regexes = []  # stores all the regex actions
 
         print("The following regex actions are being registered:")
 
-        # Player chatted action
-        async def player_message(match):
-            print("Player message, sending...")
-            await whb.on_player_message(match.group(1), match.group(2))
-
-        regexes.insert(
-            0,
-            regex_action(
-                config.webhook["regex"]["player_message"],
-                player_message,
-                "Player message",
-            ),
-        )
-        print_action(
-            config.webhook["regex"]["player_message"],
-            "Send messages that players send ingame to Discord.",
-        )
-
-        # Player join action
-        async def player_joined(match):
-            print("Player joined, sending...")
-            await whb.on_player_join(match.group(1))
-
-        regexes.insert(
-            0,
-            regex_action(
-                config.webhook["regex"]["player_joined"], player_joined, "Player joined"
-            ),
-        )
-        print_action(
-            config.webhook["regex"]["player_joined"],
-            "Send player join events to Discord.",
-        )
-
-        # Player leave action
-        async def player_left(match):
-            print("Player left, sending...")
-            await whb.on_player_leave(match.group(1))
-
-        regexes.insert(
-            0,
-            regex_action(
-                config.webhook["regex"]["player_left"], player_left, "Player left"
-            ),
-        )
-        print_action(
-            config.webhook["regex"]["player_left"],
-            "Send player leave events to Discord.",
-        )
-
-        # Server starting action
-        async def server_starting(match):
-            print("Server starting, sending...")
-            await whb.on_server_starting()
-
-        regexes.insert(
-            0,
-            regex_action(
-                config.webhook["regex"]["server_starting"],
-                server_starting,
-                "Server starting",
-            ),
-        )
-        print_action(
-            config.webhook["regex"]["server_starting"],
-            "Send server starting events to Discord.",
-        )
-
-        # Server started action
-        async def server_started(match):
-            print("Server started, sending...")
-            await whb.on_server_started()
-
-        regexes.insert(
-            0,
-            regex_action(
-                config.webhook["regex"]["server_started"],
-                server_started,
-                "Server started",
-            ),
-        )
-        print_action(
-            config.webhook["regex"]["server_started"],
-            "Send server started events to Discord.",
-        )
-
-        # Server stopping action
-        async def server_stopping(match):
-            print("Server stopping, sending...")
-            await whb.on_server_stopping()
-
-        regexes.insert(
-            0,
-            regex_action(
-                config.webhook["regex"]["server_stopping"],
-                server_stopping,
-                "Server stopping",
-            ),
-        )
-        print_action(
-            config.webhook["regex"]["server_stopping"],
-            "Send server stop events to Discord.",
-        )
-
-        # Server list action
-        async def server_list(match):
-            print("Server list sending...")
-            await whb.on_server_list(match.group(1), match.group(2), match.group(3))
-
-        regexes.insert(
-            0,
-            regex_action(
-                config.webhook["regex"]["server_list"], server_list, "Server list"
-            ),
-        )
-        print_action(
-            config.webhook["regex"]["server_list"],
-            "Send server list events to Discord.",
-        )
-
-        # Console message action
-        async def console_message(match):
-            print("Console message sending...")
-            await whb.on_console_message(match.group(1))
-
-        # regexes.insert(0, regex_action(config.webhook["regex"]["console_message"], console_message, "Console message"))
-        # print_action(config.webhook["regex"]["console_message"], "Send console messages to Discord.")
-
-        # Advancement action
-        async def advancement(match):
-            print("Advancement sending...")
-            await whb.on_advancement(match.group(1), match.group(2))
-
-        regexes.insert(
-            0,
-            regex_action(
-                config.webhook["regex"]["advancement"], advancement, "Advancement"
-            ),
-        )
-        print_action(
-            config.webhook["regex"]["advancement"],
-            "Send advancement events to Discord.",
-        )
+        regexes = setup_actions(whb)
 
         print("Done action setup.")
 

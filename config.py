@@ -87,6 +87,20 @@ webhook = dict(
         advancement = "^[\.*? \d\d:\d\d:\d\d\.\d\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.dedicated\.DedicatedServer\/\]: (.*?) has made the advancement \[(.*?)\]$",
     ),
 
+    # The webhook actions that are enabled and searched for in the logs.
+    # If set to false, the event will not be sent to Discord.
+    actions_enabled = dict(
+        player_message = True,
+        player_joined = True,
+        player_left = True,
+        server_starting = True,
+        server_started = True,
+        server_stopping = True,
+        server_list = True,
+        console_message = True,
+        advancement = True,
+    ),
+
     # The name of the server, displayed when events like shutdowns or player joins occur.
     server_name = "Minecraft Server",
 
