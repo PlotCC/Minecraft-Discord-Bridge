@@ -50,6 +50,54 @@ class regex_action:
             print(f"Got match ({self.name})!")
             return match
 
+class action_list:
+    """
+        Holds a list of regex_actions and checks them all for matches given an input string.
+        Grants the ability to dynamically enable and/or disable actions.
+    """
+    
+    def __init__(self, actions: list):
+        self.all_actions = actions
+        self.enabled_actions = []
+        self.disabled_actions = []
+    
+    # Find the first action that matches the input string, return it and the match.
+    def check(self, input: str):
+        for action in self.enabled_actions:
+            match = action.check(input)
+            if match:
+                return (action, match)
+        
+        return None # Just here so we can note that if it fails it returns nothing.
+    
+    # Enable an action by name.
+    def enable_action(self, name: str):
+        for action in self.disabled_actions:
+            if action.name == name:
+                self.enabled_actions.append(action)
+                self.disabled_actions.remove(action)
+                return True
+        return False
+    
+    # Disable an action by name.
+    def disable_action(self, name: str):
+        for action in self.enabled_actions:
+            if action.name == name:
+                self.disabled_actions.append(action)
+                self.enabled_actions.remove(action)
+                return True
+        return False
+    
+    # Enable all actions.
+    def enable_all(self):
+        self.enabled_actions = self.all_actions
+        self.disabled_actions = []
+    
+    # Disable all actions.
+    def disable_all(self):
+        self.disabled_actions = self.all_actions
+        self.enabled_actions = []
+
 def setup_action(callback: function, what_do: str):
     print(
         f"  Event: '{callback.__name__}'\n    Action: {what_do}\n    Enabled: {config.webhook['actions_enabled'][callback.__name__]}\n"
@@ -58,11 +106,11 @@ def setup_action(callback: function, what_do: str):
 
 
 def setup_actions(whb: Bridge):
-    actions = []
+    # Initial step: Add all actions to the list.
+    list = []
 
     def insert_action(action: regex_action):
-        if config.webhook["actions_enabled"][action.name]:
-            actions.insert(0, action)
+        list.insert(0, action)
 
     # Player chatted action
     async def player_message(match):
@@ -172,6 +220,16 @@ def setup_actions(whb: Bridge):
         ),
     )
 
+    # Second step: Create the actions object.
+    actions = action_list(list)
+
+    # Third step: Enable or disable actions based on the config.
+    for action in actions.all_actions:
+        if config.webhook["actions_enabled"][action.name]:
+            actions.enable_action(action.name)
+        else:
+            actions.disable_action(action.name)
+
     return actions
 
 
@@ -186,7 +244,7 @@ async def main():
 
         print("The following regex actions are being registered:")
 
-        regexes = setup_actions(whb)
+        actions = setup_actions(whb)
 
         print("Done action setup.")
 
@@ -199,15 +257,9 @@ async def main():
             line = f.readline()
             if line:
                 if line != "" and line != "\n":
-                    # For each action
-                    for action in regexes:
-                        # If the action's regex matched
-                        match = action.check(line)
-                        if match:
-                            # Run the action.
-                            print(f"Match: {line}")
-                            await action.on_match(match)
-                            break
+                    match = actions.check(line)
+                    if match:
+                        await match[0].on_match(match[1])
                 elif line == "\n":
                     print("Ignored empty newline.")
                 elif line == "":
