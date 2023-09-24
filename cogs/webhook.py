@@ -28,16 +28,16 @@ class WebhookCog(commands.Cog):
     )
     @app_commands.describe(action="The action to enable or disable.", enabled="Whether to enable or disable the action.")
     @app_commands.choices(colors=[
-        app_commands.OptionChoice(name="player_message", value=1),
-        app_commands.OptionChoice(name="player_joined", value=2),
-        app_commands.OptionChoice(name="player_left", value=3),
-        app_commands.OptionChoice(name="server_starting", value=4),
-        app_commands.OptionChoice(name="server_started", value=5),
-        app_commands.OptionChoice(name="server_stopping", value=6),
-        app_commands.OptionChoice(name="server_list", value=7),
-        app_commands.OptionChoice(name="console_message", value=8),
-        app_commands.OptionChoice(name="advancement", value=9),
-        app_commands.OptionChoice(name="list-actions", value=10),
+        app_commands.Choice(name="player_message", value=1),
+        app_commands.Choice(name="player_joined", value=2),
+        app_commands.Choice(name="player_left", value=3),
+        app_commands.Choice(name="server_starting", value=4),
+        app_commands.Choice(name="server_started", value=5),
+        app_commands.Choice(name="server_stopping", value=6),
+        app_commands.Choice(name="server_list", value=7),
+        app_commands.Choice(name="console_message", value=8),
+        app_commands.Choice(name="advancement", value=9),
+        app_commands.Choice(name="list-actions", value=10),
     ])
     @app_commands.checks.has_permissions(administrator=True)
     async def actions(self, interaction: discord.Interaction, action: app_commands.Choices[int], enabled: typing.Optional[str]=None) -> None:
