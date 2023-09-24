@@ -143,7 +143,7 @@ class ServerCog(commands.Cog):
                 return
 
             start_server(self.bot)
-            await interaction.response.send_message("Server is starting up.")
+            await interaction.response.send_message("Server startup has been queued.")
             self.running = True
             self.restart_lock = False
         else:
