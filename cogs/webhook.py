@@ -40,8 +40,18 @@ class WebhookCog(commands.Cog):
         app_commands.Choice(name="list-actions", value=10),
     ])
     @app_commands.checks.has_permissions(administrator=True)
-    async def actions(self, interaction: discord.Interaction, action: app_commands.Choice[int], enabled: typing.Optional[str]=None) -> None:
+    async def actions(self, interaction: discord.Interaction, action: app_commands.Choice[int], enabled: typing.Optional[bool]=None) -> None:
         LOG.info(f"Action [{action.name} ({action.value}) -> {enabled}] requested by {interaction.user.name}#{interaction.user.discriminator}.")
+        if action.value == 10:
+            await interaction.response.send_message("```" + "\n".join(config.webhook["actions_enabled"].keys()) + "```")
+            return
+        
+        if enabled == None:
+            await interaction.response.send_message(f"Action {action.name} is currently {'enabled' if config.webhook['actions_enabled'][action.name] else 'disabled'}.")
+            return
+        
+        config.webhook["actions_enabled"][action.name] = enabled
+        await interaction.response.send_message(f"Action {action.name} is now {'enabled' if config.webhook['actions_enabled'][action.name] else 'disabled'}.")
 
     # Task that runs forever (only started once) that runs main from webhook.py
     async def run_webhook(self):
