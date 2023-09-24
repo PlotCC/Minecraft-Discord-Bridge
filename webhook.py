@@ -98,7 +98,7 @@ class action_list:
         self.disabled_actions = self.all_actions
         self.enabled_actions = []
 
-def setup_action(callback: function, what_do: str):
+def setup_action(callback, what_do: str):
     print(
         f"  Event: '{callback.__name__}'\n    Action: {what_do}\n    Enabled: {config.webhook['actions_enabled'][callback.__name__]}\n"
     )
