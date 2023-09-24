@@ -100,7 +100,7 @@ class action_list:
 
 def setup_action(callback, what_do: str):
     print(
-        f"  Event: '{callback.__name__}'\n    Action: {what_do}\n    Enabled: {config.webhook['actions_enabled'][callback.__name__]}\n"
+        f"  Event: '{callback.__name__}'\n    Action: {what_do}\n    Enabled: {config.webhook['actions_enabled'][callback.__name__]}\n    Regex: {config.webhook['regex'][callback.__name__]}\n"
     )
     return regex_action(config.webhook["regex"][callback.__name__], callback)
 
