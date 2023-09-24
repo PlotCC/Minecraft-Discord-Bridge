@@ -39,10 +39,10 @@ def open_latest_log():
 class regex_action:
     """Holds a regex and runs a function if the regex matches an input string"""
 
-    def __init__(self, regex: str, on_match, name: str):
+    def __init__(self, regex: str, on_match):
         self.regex = regex
         self.on_match = on_match
-        self.name = name
+        self.name = on_match.__name__
 
     def check(self, input: str):
         match = re.search(self.regex, input)
@@ -102,7 +102,7 @@ def setup_action(callback, what_do: str):
     print(
         f"  Event: '{callback.__name__}'\n    Action: {what_do}\n    Enabled: {config.webhook['actions_enabled'][callback.__name__]}\n"
     )
-    return regex_action(config.webhook["regex"][callback.__name__], callback, what_do)
+    return regex_action(config.webhook["regex"][callback.__name__], callback)
 
 
 def setup_actions(whb: Bridge):
