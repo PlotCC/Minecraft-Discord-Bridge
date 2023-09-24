@@ -2,13 +2,12 @@ import re
 import discord
 import emoji
 from discord.ext import commands
-from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 import asyncio
 import aiohttp
 import logging
 
 from webhook_bridge import Bridge
-from webhook import open_latest_log, need_log_reopen, setup_actions
+from webhook_actions import open_latest_log, need_log_reopen, setup_actions
 import config
 
 LOG = logging.getLogger("WEBHOOK_COG")
