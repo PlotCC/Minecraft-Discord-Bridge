@@ -4,17 +4,19 @@ import re
 from discord import Webhook
 import time
 import os
+import logging
 
 from webhook_bridge import Bridge
 import config
 
 filesize = 0
 
+LOG = logging.getLogger("WEBHOOK")
 
 def need_log_reopen():
     global filesize
     if not os.path.isfile(config.webhook["latest_log_location"]):
-        print("Reopen required.")
+        LOG.info("Reopen required.")
         return True
     new_size = os.path.getsize(config.webhook["latest_log_location"])
     old_size = filesize
@@ -28,11 +30,11 @@ def open_latest_log():
     lll = config.webhook["latest_log_location"]
     while not os.path.isfile(lll):
         if not printed:
-            print(f"Waiting for latest.log to exist ({lll}).")
+            LOG.info(f"Waiting for latest.log to exist ({lll}).")
         printed = True
         time.sleep(0.1)
 
-    print("Log opened.")
+    LOG.info("Log opened.")
     return open(lll)
 
 
@@ -47,7 +49,7 @@ class regex_action:
     def check(self, input: str):
         match = re.search(self.regex, input)
         if match:
-            print(f"Got match ({self.name})!")
+            LOG.debug(f"Got match ({self.name})!")
             return match
 
 class action_list:
@@ -107,7 +109,7 @@ class action_list:
         self.enabled_actions = []
 
 def setup_action(callback, what_do: str):
-    print(
+    LOG.debug(
         f"  Event: '{callback.__name__}'\n    Action: {what_do}\n    Enabled: {config.webhook['actions_enabled'][callback.__name__]}\n    Regex: {config.webhook['regex'][callback.__name__]}\n"
     )
     return regex_action(config.webhook["regex"][callback.__name__], callback)
@@ -122,7 +124,7 @@ def setup_actions(whb: Bridge):
 
     # Player chatted action
     async def player_message(match):
-        print("Player message, sending...")
+        LOG.info("Player message, sending...")
         await whb.on_player_message(match.group(1), match.group(2))
 
     insert_action(
@@ -134,7 +136,7 @@ def setup_actions(whb: Bridge):
 
     # Player join action
     async def player_joined(match):
-        print("Player joined, sending...")
+        LOG.info("Player joined, sending...")
         await whb.on_player_join(match.group(1))
 
     insert_action(
@@ -146,7 +148,7 @@ def setup_actions(whb: Bridge):
 
     # Player leave action
     async def player_left(match):
-        print("Player left, sending...")
+        LOG.info("Player left, sending...")
         await whb.on_player_leave(match.group(1))
 
     insert_action(
@@ -158,7 +160,7 @@ def setup_actions(whb: Bridge):
 
     # Server starting action
     async def server_starting(match):
-        print("Server starting, sending...")
+        LOG.info("Server starting, sending...")
         await whb.on_server_starting()
 
     insert_action(
@@ -170,7 +172,7 @@ def setup_actions(whb: Bridge):
 
     # Server started action
     async def server_started(match):
-        print("Server started, sending...")
+        LOG.info("Server started, sending...")
         await whb.on_server_started()
 
     insert_action(
@@ -182,7 +184,7 @@ def setup_actions(whb: Bridge):
 
     # Server stopping action
     async def server_stopping(match):
-        print("Server stopping, sending...")
+        LOG.info("Server stopping, sending...")
         await whb.on_server_stopping()
 
     insert_action(
@@ -194,7 +196,7 @@ def setup_actions(whb: Bridge):
 
     # Server list action
     async def server_list(match):
-        print("Server list sending...")
+        LOG.info("Server list sending...")
         await whb.on_server_list(match.group(1), match.group(2), match.group(3))
 
     insert_action(
@@ -206,7 +208,7 @@ def setup_actions(whb: Bridge):
 
     # Console message action
     async def console_message(match):
-        print("Console message sending...")
+        LOG.info("Console message sending...")
         await whb.on_console_message(match.group(1))
 
     insert_action(
@@ -218,7 +220,7 @@ def setup_actions(whb: Bridge):
 
     # Advancement action
     async def advancement(match):
-        print("Advancement sending...")
+        LOG.info("Advancement sending...")
         await whb.on_advancement(match.group(1), match.group(2))
 
     insert_action(
@@ -235,34 +237,34 @@ def setup_actions(whb: Bridge):
     for action in actions.all_actions:
         if config.webhook["actions_enabled"][action.name]:
             actions.enable_action(action.name)
-            print(f"  Action '{action.name}' enabled.")
+            LOG.info(f"  Action '{action.name}' enabled.")
         else:
             actions.disable_action(action.name)
-            print(f"  Action '{action.name}' disabled.")
+            LOG.info(f"  Action '{action.name}' disabled.")
 
     return actions
 
 
 async def main():
     async with aiohttp.ClientSession() as session:
-        print("Connecting to webhook...")
+        LOG.info("Connecting to webhook...")
         webhook = Webhook.from_url(config.webhook["url"], session=session)
-        print("Webhook connected.")
+        LOG.info("Webhook connected.")
         whb = Bridge(webhook)  # Create the webhook bridge object.
 
-        print("Setting up regexes.")
+        LOG.info("Setting up actions.")
 
-        print("The following regex actions are being registered:")
+        LOG.debug("The following actions are being registered:")
 
         actions = setup_actions(whb)
 
-        print("Done action setup.")
+        LOG.info("Done action setup.")
 
         f = open_latest_log()
         f.seek(0, 2)
 
         # Main loop: Grab a line of the file, check if it matches any patterns. If so, run the action.
-        print(f"Listening to log file {config.webhook['latest_log_location']}.")
+        LOG.info(f"Listening to log file {config.webhook['latest_log_location']}.")
         while True:
             line = f.readline()
             if line:
@@ -271,7 +273,7 @@ async def main():
                     if match:
                         await match[0].on_match(match[1])
                 elif line == "\n":
-                    print("Ignored empty newline.")
+                    LOG.debug("Ignored empty newline.")
                 elif line == "":
                     if need_log_reopen():
                         f = open_latest_log()

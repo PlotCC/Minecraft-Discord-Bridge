@@ -11,7 +11,7 @@ from webhook_bridge import Bridge
 from webhook import open_latest_log, need_log_reopen, setup_actions
 import config
 
-LOG = logging.getLogger("WEBHOOK")
+LOG = logging.getLogger("WEBHOOK_COG")
 
 emoji_match = "<a?(:.*?:)\d*?>"
 def parse_emoji(content):
