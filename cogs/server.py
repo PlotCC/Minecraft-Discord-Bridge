@@ -231,6 +231,7 @@ class ServerCog(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def unlock(self, interaction: discord.Interaction) -> None:
         self.crash_lock = False
+        self.crash_count = 0
         await interaction.response.send_message(
             "Server startup unlocked.", ephemeral=True, delete_after=4
         )
