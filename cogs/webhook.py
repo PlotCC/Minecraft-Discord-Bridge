@@ -27,7 +27,7 @@ class WebhookCog(commands.Cog):
         description="Toggle a webhook action, allows to disable things like player join/leave events or etc.",
     )
     @app_commands.describe(action="The action to enable or disable.", enabled="Whether to enable or disable the action.")
-    @app_commands.choices(colors=[
+    @app_commands.choices(action=[
         app_commands.Choice(name="player_message", value=1),
         app_commands.Choice(name="player_joined", value=2),
         app_commands.Choice(name="player_left", value=3),
@@ -41,7 +41,7 @@ class WebhookCog(commands.Cog):
     ])
     @app_commands.checks.has_permissions(administrator=True)
     async def actions(self, interaction: discord.Interaction, action: app_commands.Choice[int], enabled: typing.Optional[str]=None) -> None:
-        LOG.info(f"Action {action.name} ({action.value}) requested by {interaction.user.name}#{interaction.user.discriminator}.")
+        LOG.info(f"Action [{action.name} ({action.value}) -> {enabled}] requested by {interaction.user.name}#{interaction.user.discriminator}.")
 
     # Task that runs forever (only started once) that runs main from webhook.py
     async def run_webhook(self):
