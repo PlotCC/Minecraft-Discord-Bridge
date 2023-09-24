@@ -63,7 +63,10 @@ class action_list:
     
     # Find the first action that matches the input string, return it and the match.
     def check(self, input: str):
+        print("IN: " + input)
         for action in self.enabled_actions:
+            print("  Checking " + action.name)
+            print("    Regex: " + action.regex)
             match = action.check(input)
             if match:
                 return (action, match)
@@ -227,8 +230,10 @@ def setup_actions(whb: Bridge):
     for action in actions.all_actions:
         if config.webhook["actions_enabled"][action.name]:
             actions.enable_action(action.name)
+            print(f"  Action '{action.name}' enabled.")
         else:
             actions.disable_action(action.name)
+            print(f"  Action '{action.name}' disabled.")
 
     return actions
 
