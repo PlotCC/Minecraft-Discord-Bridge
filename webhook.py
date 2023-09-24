@@ -79,8 +79,9 @@ class action_list:
             if action.name == name:
                 self.enabled_actions.append(action)
                 self.disabled_actions.remove(action)
-                return True
-        return False
+                return
+                
+        self.enabled_actions.append(action)
     
     # Disable an action by name.
     def disable_action(self, name: str):
@@ -88,8 +89,9 @@ class action_list:
             if action.name == name:
                 self.disabled_actions.append(action)
                 self.enabled_actions.remove(action)
-                return True
-        return False
+                return
+        
+        self.disabled_actions.append(action)
     
     # Enable all actions.
     def enable_all(self):
