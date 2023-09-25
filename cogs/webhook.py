@@ -46,11 +46,20 @@ class WebhookCog(commands.Cog):
             await interaction.response.send_message("```" + "\n".join(config.webhook["actions_enabled"].keys()) + "```")
             return
         
-        if enabled == None:
-            await interaction.response.send_message(f"Action {action.name} is currently {'enabled' if config.webhook['actions_enabled'][action.name] else 'disabled'}.")
+        action_enabled = False
+        for action in self.action_list.enabled_actions:
+            if action.name == action.name:
+                action_enabled = True
+                break
+        
+        if action_enabled == None:
+            await interaction.response.send_message(f"Action {action.name} is currently {'enabled' if action_enabled else 'disabled'}.")
             return
         
-        config.webhook["actions_enabled"][action.name] = enabled
+        if enabled:
+            self.action_list.enable(action)
+        else:
+            self.action_list.disable(action)
         await interaction.response.send_message(f"Action {action.name} is now {'enabled' if config.webhook['actions_enabled'][action.name] else 'disabled'}.")
 
     # Task that runs forever (only started once) that runs main from webhook.py
@@ -65,7 +74,7 @@ class WebhookCog(commands.Cog):
 
             LOG.info("The following regex actions are being registered:")
 
-            actions = setup_actions(whb)
+            self.action_list = setup_actions(whb)
 
             LOG.info("Done action setup.")
 
@@ -78,7 +87,7 @@ class WebhookCog(commands.Cog):
                 line = f.readline()
                 if line:
                     if line != "" and line != "\n":
-                        match = actions.check(line)
+                        match = self.action_list.check(line)
                         if match:
                             await match[0].on_match(match[1])
                     elif line == "\n":
