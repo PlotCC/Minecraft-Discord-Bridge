@@ -57,9 +57,9 @@ class WebhookCog(commands.Cog):
             return
         
         if enabled:
-            self.action_list.enable(action)
+            self.action_list.enable_action(action)
         else:
-            self.action_list.disable(action)
+            self.action_list.disable_action(action)
         await interaction.response.send_message(f"Action {action.name} is now {'enabled' if config.webhook['actions_enabled'][action.name] else 'disabled'}.")
 
     # Task that runs forever (only started once) that runs main from webhook.py
