@@ -52,7 +52,7 @@ class WebhookCog(commands.Cog):
                 action_enabled = True
                 break
         
-        LOG.info("#############" + enabled)
+        LOG.info(f"############# {enabled}")
 
         if action_enabled == None:
             await interaction.response.send_message(f"Action {action.name} is currently {'enabled' if action_enabled else 'disabled'}.")
