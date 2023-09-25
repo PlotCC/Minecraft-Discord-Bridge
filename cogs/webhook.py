@@ -43,7 +43,7 @@ class WebhookCog(commands.Cog):
     async def actions(self, interaction: discord.Interaction, action: app_commands.Choice[int], enabled: typing.Optional[bool]=None) -> None:
         LOG.info(f"Action [{action.name} ({action.value}) -> {enabled}] requested by {interaction.user.name}#{interaction.user.discriminator}.")
         if action.value == 10:
-            await interaction.response.send_message("```" + "\n".join(config.webhook["actions_enabled"].keys()) + "```")
+            await interaction.response.send_message("```" + "\n".join([_action.name for _action in self.action_list.all_actions]) + "```")
             return
         
         action_enabled = False
