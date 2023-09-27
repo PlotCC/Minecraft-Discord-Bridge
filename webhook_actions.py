@@ -113,7 +113,7 @@ class action_list:
     
     # Find the first action that matches the input string, return it and the match.
     def check(self, input: str):
-        for action in self.enabled_actions:
+        for action in self.all_actions:
             match = action.check(input)
             if match:
                 LOG.debug(f"Got match ({match[0][0]})!")
