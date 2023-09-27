@@ -142,7 +142,7 @@ class WebhookCog(commands.Cog):
             author = None
             ping_str = None
             try:
-                message_d = self.bot.bridge_channel.fetch_message(int(match.group(1)))
+                message_d = await self.bot.bridge_channel.fetch_message(int(match.group(1)))
                 author = message_d.author.display_name
                 message = message_d.content
                 ping_str = f"<@{author.id}>"
@@ -264,11 +264,11 @@ class WebhookCog(commands.Cog):
         # Third step: Enable or disable actions based on the config.
         for action in actions.all_actions:
             if config.webhook["actions_enabled"][action.name]:
-                actions.enable_action(action.name)
-                LOG.info(f"  Action '{action.name}' enabled.")
+                actions.enable_action(action)
+                LOG.info(f"  Action '{action}' enabled.")
             else:
-                actions.disable_action(action.name)
-                LOG.info(f"  Action '{action.name}' disabled.")
+                actions.disable_action(action)
+                LOG.info(f"  Action '{action}' disabled.")
 
         return actions
     
