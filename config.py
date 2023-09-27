@@ -1,4 +1,5 @@
 import datetime
+import logging
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -17,7 +18,10 @@ bot = dict(
     token = "",
 
     # The prefix for jsk.
-    prefix = ">> "
+    prefix = ">> ",
+
+    # The log level for the bot.
+    logging_level = logging.INFO
 )
 
 server = dict(

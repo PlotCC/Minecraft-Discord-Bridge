@@ -11,7 +11,7 @@ import config
 path = pathlib.Path(__file__)
 BOT_SRC = str(path.parent.absolute())
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=config.bot["logging_level"])
 
 LOG = logging.getLogger("MAIN")
 
