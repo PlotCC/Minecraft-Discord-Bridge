@@ -46,16 +46,17 @@ class WebhookCog(commands.Cog):
     )
     @app_commands.describe(action="The action to enable or disable.", enabled="Whether to enable or disable the action.")
     @app_commands.choices(action=[
-        app_commands.Choice(name="player_message", value=1),
-        app_commands.Choice(name="player_joined", value=2),
-        app_commands.Choice(name="player_left", value=3),
-        app_commands.Choice(name="server_starting", value=4),
-        app_commands.Choice(name="server_started", value=5),
-        app_commands.Choice(name="server_stopping", value=6),
-        app_commands.Choice(name="server_list", value=7),
-        app_commands.Choice(name="console_message", value=8),
-        app_commands.Choice(name="advancement", value=9),
-        app_commands.Choice(name="list-actions", value=10),
+        app_commands.Choice(name="player_message_reply", value=1),
+        app_commands.Choice(name="player_message_noreply", value=2),
+        app_commands.Choice(name="player_joined", value=3),
+        app_commands.Choice(name="player_left", value=4),
+        app_commands.Choice(name="server_starting", value=5),
+        app_commands.Choice(name="server_started", value=6),
+        app_commands.Choice(name="server_stopping", value=7),
+        app_commands.Choice(name="server_list", value=8),
+        app_commands.Choice(name="console_message", value=9),
+        app_commands.Choice(name="advancement", value=10),
+        app_commands.Choice(name="list-actions", value=11),
     ])
     @app_commands.checks.has_permissions(administrator=True)
     async def actions(self, interaction: discord.Interaction, action: app_commands.Choice[int], enabled: typing.Optional[bool]=None) -> None:
@@ -64,11 +65,7 @@ class WebhookCog(commands.Cog):
             await interaction.response.send_message("```" + "\n".join([_action.name for _action in self.action_list.all_actions]) + "```")
             return
         
-        action_enabled = False
-        for action_item in self.action_list.enabled_actions:
-            if action_item.name == action.name:
-                action_enabled = True
-                break
+        action_enabled = self.action_list.get_enabled(action.name)
 
         if enabled == None:
             await interaction.response.send_message(f"Action {action.name} is currently {'enabled' if action_enabled else 'disabled'}.")

@@ -47,11 +47,23 @@ class regex_action:
         self.regex = regex
         self.on_match = on_match
         self.name = on_match.__name__
+        self.enabled = True
+
+    def get_enabled(self, name):
+        if self.name == name:
+            return self.enabled
+    
+    def enable(self, name):
+        if self.name == name or name == None:
+            self.enabled = True
+    
+    def disable(self, name):
+        if self.name == name or name == None:
+            self.enabled = False
 
     def check(self, input: str):
         match = re.search(self.regex, input)
-        if match:
-            LOG.debug(f"Got match ({self.name})!")
+        if match and self.enabled:
             return match, self.on_match
 
         return None
@@ -65,13 +77,27 @@ class multi_regex_action:
     def __init__(self, regexes: list[str], on_match: list[Callable]):
         self.regexes = regexes
         self.match_list = on_match
-        self.name = on_match.__name__
+        self.enabled = [True for _ in on_match]
+    
+    def get_enabled(self, name):
+        for action in self.match_list:
+            if action.__name__ == name:
+                return self.enabled[self.match_list.index(action)]
+    
+    def enable(self, name):
+        for action in self.match_list:
+            if action.__name__ == name or name == None:
+                self.enabled[self.match_list.index(action)] = True
+    
+    def disable(self, name):
+        for action in self.match_list:
+            if action.__name__ == name or name == None:
+                self.enabled[self.match_list.index(action)] = False
 
     def check(self, input: str):
         for regex in self.regexes:
             match = re.search(regex, input)
-            if match:
-                LOG.debug(f"Got match ({self.name})!")
+            if match and self.enabled[self.regexes.index(regex)]:
                 return match, self.match_list[self.regexes.index(regex)]
         
         return None
@@ -84,50 +110,39 @@ class action_list:
     
     def __init__(self, actions: list):
         self.all_actions = actions
-        self.enabled_actions = []
-        self.disabled_actions = []
     
     # Find the first action that matches the input string, return it and the match.
     def check(self, input: str):
         for action in self.enabled_actions:
             match = action.check(input)
             if match:
+                LOG.debug(f"Got match ({match[0][0]})!")
                 return match[0], match[1] # Return the match, and the function to run.
         
         return None # Just here so we can note that if it fails it returns nothing.
+
+    def get_enabled(self, name: str):
+        for action in self.all_actions:
+            enabled = action.get_enabled(name)
+            if type(enabled) == bool:
+                return enabled
     
     # Enable an action by name.
-    def enable_action(self, name: str):
-        for action in self.disabled_actions:
-            if action.name == name:
-                self.enabled_actions.append(action)
-                self.disabled_actions.remove(action)
-                return
-        
+    def enable_action(self, name: str):        
         for action in self.all_actions:
-            if action.name == name:
-                self.enabled_actions.append(action)
-                return
+            action.enable(name)
     
     # Disable an action by name.
     def disable_action(self, name: str):
-        for action in self.enabled_actions:
-            if action.name == name:
-                self.disabled_actions.append(action)
-                self.enabled_actions.remove(action)
-                return
-        
         for action in self.all_actions:
-            if action.name == name:
-                self.disabled_actions.append(action)
-                return
+            action.disable(name)
     
     # Enable all actions.
     def enable_all(self):
-        self.enabled_actions = self.all_actions
-        self.disabled_actions = []
+        for action in self.all_actions:
+            action.enable()
     
     # Disable all actions.
     def disable_all(self):
-        self.disabled_actions = self.all_actions
-        self.enabled_actions = []
+        for action in self.all_actions:
+            action.disable()
