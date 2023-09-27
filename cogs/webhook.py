@@ -79,44 +79,48 @@ class WebhookCog(commands.Cog):
 
     # Task that runs forever (only started once) that runs main from webhook.py
     async def run_webhook(self):
-        async with aiohttp.ClientSession() as session:
-            LOG.info("Connecting to webhook...")
-            webhook = discord.Webhook.from_url(config.webhook["url"], session=session)
-            LOG.info("Webhook connected.")
-            whb = Bridge(webhook)  # Create the webhook bridge object.
+        try: # Wrap everything in a try since the error isn't propagated properly.
+            async with aiohttp.ClientSession() as session:
+                LOG.info("Connecting to webhook...")
+                webhook = discord.Webhook.from_url(config.webhook["url"], session=session)
+                LOG.info("Webhook connected.")
+                whb = Bridge(webhook)  # Create the webhook bridge object.
 
-            LOG.info("Setting up regexes.")
+                LOG.info("Setting up regexes.")
 
-            LOG.info("The following regex actions are being registered:")
+                LOG.info("The following regex actions are being registered:")
 
-            self.action_list = self.setup_actions(whb)
+                self.action_list = self.setup_actions(whb)
 
-            LOG.info("Done action setup.")
+                LOG.info("Done action setup.")
 
-            f = open_latest_log()
-            f.seek(0, 2)
+                f = open_latest_log()
+                f.seek(0, 2)
 
-            # Main loop: Grab a line of the file, check if it matches any patterns. If so, run the action.
-            LOG.info(f"Listening to log file {config.webhook['latest_log_location']}.")
-            while True:
-                line = f.readline()
-                if line:
-                    if line != "" and line != "\n":
-                        match = self.action_list.check(line)
-                        if match:
-                            await match[1](match[0])
-                    elif line == "\n":
-                        LOG.info("Ignored empty newline.")
-                    elif line == "":
+                # Main loop: Grab a line of the file, check if it matches any patterns. If so, run the action.
+                LOG.info(f"Listening to log file {config.webhook['latest_log_location']}.")
+                while True:
+                    line = f.readline()
+                    if line:
+                        if line != "" and line != "\n":
+                            match = self.action_list.check(line)
+                            if match:
+                                await match[1](match[0])
+                        elif line == "\n":
+                            LOG.info("Ignored empty newline.")
+                        elif line == "":
+                            if need_log_reopen():
+                                f = open_latest_log()
+                    else:
                         if need_log_reopen():
                             f = open_latest_log()
-                else:
-                    if need_log_reopen():
-                        f = open_latest_log()
 
-                # Delay between checking each line. I assume 100 lines per second is more than enough?
-                # A better delay system will be set up soon, this is mostly temporary.
-                await asyncio.sleep(0.01)
+                    # Delay between checking each line. I assume 100 lines per second is more than enough?
+                    # A better delay system will be set up soon, this is mostly temporary.
+                    await asyncio.sleep(0.01)
+        except Exception as e:
+            LOG.error("Webhook task failed!")
+            LOG.error(e)
     
     def setup_actions(self, whb: Bridge):
         # Initial step: Add all actions to the list.
