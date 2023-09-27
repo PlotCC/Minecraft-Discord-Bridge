@@ -105,14 +105,14 @@ class WebhookCog(commands.Cog):
     
     @commands.Cog.listener()
     async def on_ready(self):
-        # Start the webhook task
-        self.bot.loop.create_task(self.run_webhook())
+        None
 
     async def cog_load(self):
-        None
+        # Start the webhook task
+        self.webhook_task = self.bot.loop.create_task(self.run_webhook())
 
     async def cog_unload(self):
-        None
+        self.webhook_task.cancel()
         
 
 async def setup(bot: discord.ext.commands.Bot):
