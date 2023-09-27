@@ -52,7 +52,7 @@ class Bridge:
     
     # Send a player chat with a reply embed to Discord.
     async def on_player_message_reply(self, username:str, message:str, reply_author:str, reply_message:str):
-        embed = discord.Embed(color=0x00ff00, description=f":leftwards_arrow_with_hook: **{reply_author}** said: {reply_message}")
+        embed = discord.Embed(color=0x0000ff, description=f":leftwards_arrow_with_hook: **{reply_author}** said: {reply_message}")
 
         await self.__send_player_message(username, message=message, embed=embed)
 
