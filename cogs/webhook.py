@@ -153,7 +153,7 @@ class WebhookCog(commands.Cog):
                 message_d = await self.bot.bridge_channel.fetch_message(int(message_id))
                 author = message_d.author.display_name
                 reply_message = message_d.content
-                ping_str = f"<@{author.id}> " if ping_status == "pingon" else ""
+                ping_str = f"<@{message_d.author.id}> " if ping_status == "pingon" else ""
             except:
                 LOG.warn(f"Failed to get message from ID {message_id}.")
                 author = ":warning:"
