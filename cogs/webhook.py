@@ -266,13 +266,13 @@ class WebhookCog(commands.Cog):
         actions = action_list(list)
 
         # Third step: Enable or disable actions based on the config.
-        for action in actions.all_actions:
-            if config.webhook["actions_enabled"][action.name]:
-                actions.enable_action(action)
-                LOG.info(f"  Action '{action}' enabled.")
+        for action_name in config.webhook["actions_enabled"]:
+            if config.webhook["actions_enabled"][action_name]:
+                actions.enable_action(action_name)
+                LOG.info(f"  Action '{action_name}' enabled.")
             else:
-                actions.disable_action(action)
-                LOG.info(f"  Action '{action}' disabled.")
+                actions.disable_action(action_name)
+                LOG.info(f"  Action '{action_name}' disabled.")
 
         return actions
     
