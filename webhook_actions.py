@@ -128,7 +128,7 @@ class action_list:
                 return enabled
     
     # Enable an action by name.
-    def enable_action(self, name: str):        
+    def enable_action(self, name: str):
         for action in self.all_actions:
             action.enable(name)
     

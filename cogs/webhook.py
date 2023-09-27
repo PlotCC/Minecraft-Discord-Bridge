@@ -136,28 +136,32 @@ class WebhookCog(commands.Cog):
         
         async def player_message_reply(match):
             LOG.info("Player message (with reply), getting message from ID...")
-            # match group 1 is the message ID
-            # match group 2 is the ping status (literally "pingon" or "pingoff")
-            # match group 3 is the player name
+            # match group 1 is the player name
+            # match group 2 is the message id
+            # match group 3 is the ping status (literally 'pingon' or 'pingoff')
             # match group 4 is the message
+            name = match.group(1)
+            message_id = match.group(2)
+            ping_status = match.group(3)
+            message = match.group(4)
 
             # Get the message from the ID
-            message = None
+            reply_message = None
             author = None
             ping_str = None
             try:
-                message_d = await self.bot.bridge_channel.fetch_message(int(match.group(1)))
+                message_d = await self.bot.bridge_channel.fetch_message(int(message_id))
                 author = message_d.author.display_name
-                message = message_d.content
-                ping_str = f"<@{author.id}>"
+                reply_message = message_d.content
+                ping_str = f"<@{author.id}>" if ping_status == "pingon" else ""
             except:
-                LOG.warn(f"Failed to get message from ID {match.group(1)}.")
+                LOG.warn(f"Failed to get message from ID {message_id}.")
                 author = ":warning:"
-                message = "Failed to fetch original message."
+                reply_message = "Failed to fetch original message."
                 ping_str = ""
                 
 
-            await whb.on_player_message_reply(match.group(3), match.group(4), author, message, ping_str)
+            await whb.on_player_message_reply(name, message, author, reply_message, ping_str)
 
         insert_action(
             setup_multi_action(
