@@ -120,7 +120,7 @@ class WebhookCog(commands.Cog):
                     await asyncio.sleep(0.01)
         except Exception as e:
             LOG.error("Webhook task failed!")
-            LOG.error(e)
+            LOG.exception(e)
     
     def setup_actions(self, whb: Bridge):
         # Initial step: Add all actions to the list.
