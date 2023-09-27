@@ -56,17 +56,6 @@ async def startup():
     # Get the console window pane.
     bot.console_pane = console_win.panes[0]
 
-    # NOTE: Separate bridge process is emporarily disabled, going to test if we can do this via the bot instead.
-
-    # Create the pane for the bridge.
-    #if bot.session_existed:
-    #    bot.bridge_pane = console_win.panes[1]
-    #else:
-    #    bot.bridge_pane = console_win.split_window(attach=True)
-
-    # Start the bridge.
-    #bot.bridge_pane.send_keys(config.programs["bridge"])
-
     # Block chat until the server is confirmed online.
     bot.block_chat = True
 

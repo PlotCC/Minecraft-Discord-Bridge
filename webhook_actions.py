@@ -1,7 +1,12 @@
+from __future__ import annotations
 import re
 import time
 import os
 import logging
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from typing import Callable
 
 from webhook_bridge import Bridge
 import config
@@ -47,7 +52,29 @@ class regex_action:
         match = re.search(self.regex, input)
         if match:
             LOG.debug(f"Got match ({self.name})!")
-            return match
+            return match, self.on_match
+
+        return None
+    
+class multi_regex_action:
+    """
+        Uses a linked list of regex and functions to run if the regex matches an input string.
+        This is mostly used to ensure a specific order of tests for some regexes.
+    """
+
+    def __init__(self, regexes: list[str], on_match: list[Callable]):
+        self.regexes = regexes
+        self.match_list = on_match
+        self.name = on_match.__name__
+
+    def check(self, input: str):
+        for regex in self.regexes:
+            match = re.search(regex, input)
+            if match:
+                LOG.debug(f"Got match ({self.name})!")
+                return match, self.match_list[self.regexes.index(regex)]
+        
+        return None
 
 class action_list:
     """
@@ -65,7 +92,7 @@ class action_list:
         for action in self.enabled_actions:
             match = action.check(input)
             if match:
-                return (action, match)
+                return match[0], match[1] # Return the match, and the function to run.
         
         return None # Just here so we can note that if it fails it returns nothing.
     
@@ -104,139 +131,3 @@ class action_list:
     def disable_all(self):
         self.disabled_actions = self.all_actions
         self.enabled_actions = []
-
-def setup_action(callback, what_do: str):
-    LOG.debug(
-        f"  Event: '{callback.__name__}'\n    Action: {what_do}\n    Enabled: {config.webhook['actions_enabled'][callback.__name__]}\n    Regex: {config.webhook['regex'][callback.__name__]}\n"
-    )
-    return regex_action(config.webhook["regex"][callback.__name__], callback)
-
-
-def setup_actions(whb: Bridge):
-    # Initial step: Add all actions to the list.
-    list = []
-
-    def insert_action(action: regex_action):
-        list.insert(0, action)
-
-    # Player chatted action
-    async def player_message(match):
-        LOG.info("Player message, sending...")
-        await whb.on_player_message(match.group(1), match.group(2))
-
-    insert_action(
-        setup_action(
-            player_message,
-            "Send messages that players send ingame to Discord.",
-        ),
-    )
-
-    # Player join action
-    async def player_joined(match):
-        LOG.info("Player joined, sending...")
-        await whb.on_player_join(match.group(1))
-
-    insert_action(
-        setup_action(
-            player_joined,
-            "Send player join events to Discord.",
-        ),
-    )
-
-    # Player leave action
-    async def player_left(match):
-        LOG.info("Player left, sending...")
-        await whb.on_player_leave(match.group(1))
-
-    insert_action(
-        setup_action(
-            player_left,
-            "Send player leave events to Discord.",
-        ),
-    )
-
-    # Server starting action
-    async def server_starting(match):
-        LOG.info("Server starting, sending...")
-        await whb.on_server_starting()
-
-    insert_action(
-        setup_action(
-            server_starting,
-            "Send server starting events to Discord.",
-        ),
-    )
-
-    # Server started action
-    async def server_started(match):
-        LOG.info("Server started, sending...")
-        await whb.on_server_started()
-
-    insert_action(
-        setup_action(
-            server_started,
-            "Send server started events to Discord.",
-        ),
-    )
-
-    # Server stopping action
-    async def server_stopping(match):
-        LOG.info("Server stopping, sending...")
-        await whb.on_server_stopping()
-
-    insert_action(
-        setup_action(
-            server_stopping,
-            "Send server stop events to Discord.",
-        ),
-    )
-
-    # Server list action
-    async def server_list(match):
-        LOG.info("Server list sending...")
-        await whb.on_server_list(match.group(1), match.group(2), match.group(3))
-
-    insert_action(
-        setup_action(
-            server_list,
-            "Send server list events to Discord.",
-        ),
-    )
-
-    # Console message action
-    async def console_message(match):
-        LOG.info("Console message sending...")
-        await whb.on_console_message(match.group(1))
-
-    insert_action(
-        setup_action(
-            console_message,
-            "Send console messages to Discord.",
-        ),
-    )
-
-    # Advancement action
-    async def advancement(match):
-        LOG.info("Advancement sending...")
-        await whb.on_advancement(match.group(1), match.group(2))
-
-    insert_action(
-        setup_action(
-            advancement,
-            "Send advancement events to Discord.",
-        ),
-    )
-
-    # Second step: Create the actions object.
-    actions = action_list(list)
-
-    # Third step: Enable or disable actions based on the config.
-    for action in actions.all_actions:
-        if config.webhook["actions_enabled"][action.name]:
-            actions.enable_action(action.name)
-            LOG.info(f"  Action '{action.name}' enabled.")
-        else:
-            actions.disable_action(action.name)
-            LOG.info(f"  Action '{action.name}' disabled.")
-
-    return actions

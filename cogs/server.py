@@ -94,7 +94,6 @@ class ServerCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.session_message = None
-        self.channel = None
         self.notification_channel = None
         self.server_pid = None
         self.running = False
@@ -292,7 +291,7 @@ class ServerCog(commands.Cog):
 
             time = get_countdown_message(self.restart_time)
             if time:
-                await self.channel.send(
+                await self.bot.bridge_channel.send(
                     embed=discord.Embed(
                         color=0xFF00FF,
                         description=f":warning: Automatic server restart in {time}.",
@@ -376,7 +375,7 @@ class ServerCog(commands.Cog):
                         )
                         embed.set_footer(text="Operators have been notified.")
 
-                await self.channel.send(content=content, embed=embed)
+                await self.bot.bridge_channel.send(content=content, embed=embed)
             else:
                 LOG.warn(
                     f"Server crashed ({self.crash_count} times in a row), restarting."
@@ -402,13 +401,13 @@ class ServerCog(commands.Cog):
                         )
                         embed.set_footer(text="Operators have been notified.")
 
-                await self.channel.send(content=content, embed=embed)
+                await self.bot.bridge_channel.send(content=content, embed=embed)
 
     async def get_channels(self):
         LOG.info("Getting channels.")
 
         LOG.info("  Bridge channel.")
-        self.channel = self.bot.get_channel(config.bot["channel_id"])
+        self.bot.bridge_channel = self.bot.get_channel(config.bot["channel_id"])
         LOG.info("    Got bridge channel.")
 
         LOG.info("  Notification channel (if enabled)")
@@ -461,7 +460,7 @@ class ServerCog(commands.Cog):
 
             base_embed.set_footer(text="Use /set-state to override this.")
 
-            self.session_message = await self.channel.send(embed=base_embed)
+            self.session_message = await self.bot.bridge_channel.send(embed=base_embed)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -482,7 +481,7 @@ class ServerCog(commands.Cog):
             self.check_crash_loop.cancel() # This one doesn't need to safely exit.
 
         try:
-            await self.channel.send(":warning: Server cog unloaded.")
+            await self.bot.bridge_channel.send(":warning: Server cog unloaded.")
         except Exception as e:
             LOG.error(f"Failed to send cog unload notification: {e}")
 

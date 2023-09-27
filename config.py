@@ -60,37 +60,42 @@ webhook = dict(
     # messages to Discord.
     regex = dict(
         # Should return two match groups -- playername and message.
-        player_message = "^\[\d\d:\d\d:\d\d] \[Server thread\/INFO\] \[net\.minecraft\.server\.dedicated\.DedicatedServer\]: \[(?!P2).*?\] (.*?): (.+)$",
+        player_message_noreply = "",
+
+        # Should return four match groups -- message ID to reply to, 'pingon'/'pingoff', playername and message.
+        # Do note, the server inserts automatically the phrase 'reply:ID:pingoff' or 'reply:ID:pingon' to the start of the message if insertion is enabled.
+        player_message_reply = "",
 
         # Should return a single match group -- playername.
-        player_joined = "^\[\d\d:\d\d:\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.dedicated\.DedicatedServer\]: (.*?) joined the game$",
+        player_joined = "",
 
         # Should return a single match group -- playername.
-        player_left = "^\[\d\d:\d\d:\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.dedicated\.DedicatedServer\]: (.*?) left the game$",
+        player_left = "",
 
         # No groups required.
-        server_starting = "^\[\d\d:\d\d:\d\d\] \[main\/INFO\] \[FML\]: Forge Mod Loader version \d*?\.\d*?\.\d*?\.\d*? for Minecraft \d*?\.\d*?\.\d*? loading$",
+        server_starting = "",
 
         # No groups required.
-        server_started = "^\[\d\d:\d\d:\d\d\] \[Server thread\/INFO\] \[Dynmap\]: \[Dynmap\] Enabled$",
+        server_started = "",
 
         # No groups required.
-        server_stopping = "^\[\d\d:\d\d:\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.MinecraftServer\]: Stopping server$",
+        server_stopping = "",
 
         # Should return three match groups -- current players, max players, playerlist.
-        server_list = "^\[.*? \d\d:\d\d:\d\d\.\d\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.dedicated\.DedicatedServer\/\]: There are (\d+) of a max of (\d+) players online: (.+)$",
+        server_list = "",
 
         # Should return a single match group -- message
-        console_message = "^\[\.*? \d\d:\d\d:\d\d\.\d\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.dedicated\.DedicatedServer\/\]: \[Server\] (.+)$",
+        console_message = "",
 
         # Should return two match groups -- playername and advancement.
-        advancement = "^[\.*? \d\d:\d\d:\d\d\.\d\d\d\] \[Server thread\/INFO\] \[net\.minecraft\.server\.dedicated\.DedicatedServer\/\]: (.*?) has made the advancement \[(.*?)\]$",
+        advancement = "",
     ),
 
     # The webhook actions that are enabled and searched for in the logs.
     # If set to false, the event will not be sent to Discord.
     actions_enabled = dict(
-        player_message = True,
+        player_message_noreply = True,
+        player_message_reply = True,
         player_joined = True,
         player_left = True,
         server_starting = True,
@@ -114,11 +119,8 @@ webhook = dict(
 )
 
 programs = dict(
-    # Bridge program, this should run the `webhook.py` python program.
-    bridge = "webhook.py",
-
     # Minecraft program, this should start the minecraft server.
-    minecraft = "run.sh"
+    minecraft = "./run.sh"
 )
 
 icons = dict(

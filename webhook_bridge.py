@@ -47,8 +47,14 @@ class Bridge:
         await self.webhook.send(content=message, embed=embed, username=config.webhook["server_name"], avatar_url = config.icons["minecraft"], allowed_mentions=discord.AllowedMentions(everyone=False))
     
     # Send a player chat to Discord.
-    async def on_player_message(self, username:str, message:str):
+    async def on_player_message_noreply(self, username:str, message:str):
         await self.__send_player_message(username, message=message)
+    
+    # Send a player chat with a reply embed to Discord.
+    async def on_player_message_reply(self, username:str, message:str, reply_author:str, reply_message:str, ping_str):
+        embed = discord.Embed(color=0x00ff00, description=f":leftwards_arrow_with_hook: **{reply_author}** said: {reply_message}")
+
+        await self.__send_player_message(username, message= f"{ping_str + (' ' if ping_str else '')}{message}", embed=embed)
 
     # Send a player join event to Discord.
     async def on_player_join(self, username:str):

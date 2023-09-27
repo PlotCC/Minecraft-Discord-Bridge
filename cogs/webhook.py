@@ -9,7 +9,7 @@ import logging
 import typing
 
 from webhook_bridge import Bridge
-from webhook_actions import open_latest_log, need_log_reopen, setup_actions
+from webhook_actions import open_latest_log, need_log_reopen, regex_action, multi_regex_action, action_list
 import config
 
 LOG = logging.getLogger("WEBHOOK_COG")
@@ -17,6 +17,24 @@ LOG = logging.getLogger("WEBHOOK_COG")
 emoji_match = "<a?(:.*?:)\d*?>"
 def parse_emoji(content):
     return emoji.demojize(re.sub(emoji_match, "\1", content))
+
+def setup_action(callback, what_do: str):
+    LOG.debug(f"  Event: '{callback.__name__}'")
+    LOG.debug(f"    Action: {what_do}")
+    LOG.debug(f"    Enabled: {config.webhook['actions_enabled'][callback.__name__]}")
+    LOG.debug(f"    Regex: {config.webhook['regex'][callback.__name__]}")
+
+    return regex_action(config.webhook["regex"][callback.__name__], callback)
+
+def setup_multi_action(callbacks, what_do: str):
+    LOG.debug(f"  Multi-event:")
+    LOG.debug(f"    Action: {what_do}")
+    for callback in callbacks:
+        LOG.debug(f"    Event: '{callback.__name__}'")
+        LOG.debug(f"      Regex: {config.webhook['regex'][callback.__name__]}")
+        LOG.debug(f"      Enabled: {config.webhook['actions_enabled'][callback.__name__]}")
+
+    return multi_regex_action([config.webhook["regex"][callback.__name__] for callback in callbacks], callbacks)
 
 class WebhookCog(commands.Cog):
     def __init__(self, bot):
@@ -74,7 +92,7 @@ class WebhookCog(commands.Cog):
 
             LOG.info("The following regex actions are being registered:")
 
-            self.action_list = setup_actions(whb)
+            self.action_list = self.setup_actions(whb)
 
             LOG.info("Done action setup.")
 
@@ -89,7 +107,7 @@ class WebhookCog(commands.Cog):
                     if line != "" and line != "\n":
                         match = self.action_list.check(line)
                         if match:
-                            await match[0].on_match(match[1])
+                            await match[1](match[0])
                     elif line == "\n":
                         LOG.info("Ignored empty newline.")
                     elif line == "":
@@ -102,6 +120,160 @@ class WebhookCog(commands.Cog):
                 # Delay between checking each line. I assume 100 lines per second is more than enough?
                 # A better delay system will be set up soon, this is mostly temporary.
                 await asyncio.sleep(0.01)
+    
+    def setup_actions(self, whb: Bridge):
+        # Initial step: Add all actions to the list.
+        list = []
+
+        def insert_action(action: regex_action):
+            list.insert(0, action)
+
+        # Player chatted action
+        async def player_message_noreply(match):
+            LOG.info("Player message (no reply), sending...")
+            await whb.on_player_message_noreply(match.group(1), match.group(2))
+        
+        async def player_message_reply(match):
+            LOG.info("Player message (with reply), getting message from ID...")
+            # match group 1 is the message ID
+            # match group 2 is the ping status (literally "pingon" or "pingoff")
+            # match group 3 is the player name
+            # match group 4 is the message
+
+            # Get the message from the ID
+            message = None
+            author = None
+            ping_str = None
+            try:
+                message_d = self.bot.bridge_channel.fetch_message(int(match.group(1)))
+                author = message_d.author.display_name
+                message = message_d.content
+                ping_str = f"<@{author.id}>"
+            except:
+                LOG.warn(f"Failed to get message from ID {match.group(1)}.")
+                author = ":warning:"
+                message = "Failed to fetch original message."
+                ping_str = ""
+                
+
+            await whb.on_player_message_reply(match.group(3), match.group(4), author, message, ping_str)
+
+        insert_action(
+            setup_multi_action(
+                [player_message_reply, player_message_noreply],
+                "Send messages that players send ingame to Discord.",
+            ),
+        )
+
+        # Player join action
+        async def player_joined(match):
+            LOG.info("Player joined, sending...")
+            await whb.on_player_join(match.group(1))
+
+        insert_action(
+            setup_action(
+                player_joined,
+                "Send player join events to Discord.",
+            ),
+        )
+
+        # Player leave action
+        async def player_left(match):
+            LOG.info("Player left, sending...")
+            await whb.on_player_leave(match.group(1))
+
+        insert_action(
+            setup_action(
+                player_left,
+                "Send player leave events to Discord.",
+            ),
+        )
+
+        # Server starting action
+        async def server_starting(match):
+            LOG.info("Server starting, sending...")
+            await whb.on_server_starting()
+
+        insert_action(
+            setup_action(
+                server_starting,
+                "Send server starting events to Discord.",
+            ),
+        )
+
+        # Server started action
+        async def server_started(match):
+            LOG.info("Server started, sending...")
+            await whb.on_server_started()
+
+        insert_action(
+            setup_action(
+                server_started,
+                "Send server started events to Discord.",
+            ),
+        )
+
+        # Server stopping action
+        async def server_stopping(match):
+            LOG.info("Server stopping, sending...")
+            await whb.on_server_stopping()
+
+        insert_action(
+            setup_action(
+                server_stopping,
+                "Send server stop events to Discord.",
+            ),
+        )
+
+        # Server list action
+        async def server_list(match):
+            LOG.info("Server list sending...")
+            await whb.on_server_list(match.group(1), match.group(2), match.group(3))
+
+        insert_action(
+            setup_action(
+                server_list,
+                "Send server list events to Discord.",
+            ),
+        )
+
+        # Console message action
+        async def console_message(match):
+            LOG.info("Console message sending...")
+            await whb.on_console_message(match.group(1))
+
+        insert_action(
+            setup_action(
+                console_message,
+                "Send console messages to Discord.",
+            ),
+        )
+
+        # Advancement action
+        async def advancement(match):
+            LOG.info("Advancement sending...")
+            await whb.on_advancement(match.group(1), match.group(2))
+
+        insert_action(
+            setup_action(
+                advancement,
+                "Send advancement events to Discord.",
+            ),
+        )
+
+        # Second step: Create the actions object.
+        actions = action_list(list)
+
+        # Third step: Enable or disable actions based on the config.
+        for action in actions.all_actions:
+            if config.webhook["actions_enabled"][action.name]:
+                actions.enable_action(action.name)
+                LOG.info(f"  Action '{action.name}' enabled.")
+            else:
+                actions.disable_action(action.name)
+                LOG.info(f"  Action '{action.name}' disabled.")
+
+        return actions
     
     @commands.Cog.listener()
     async def on_ready(self):
