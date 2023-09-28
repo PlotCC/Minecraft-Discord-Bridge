@@ -52,9 +52,42 @@ class BridgeCog(commands.Cog):
                 
         if message.channel.id != config.bot["channel_id"]:
             return
+        
+        pre = None
+        if message.reference:
+            message_author = None
+            message_content = None
+            if message.reference.cached_message:
+                message_author = message.reference.cached_message.author
+                message_content = message.reference.cached_message.content
+            else:
+                message_data = await self.bot.bridge_channel.fetch_message(message.reference.message_id)
+                message_author = message_data.author
+                message_content = message_data.content
+
+            pre = tellraw.multiple_tellraw(
+                tellraw(
+                    text="[REPLY] ",
+                    color="dark_gray",
+                    italic=True
+                ),
+                tellraw(
+                    text=message_author.display_name,
+                    color="dark_gray",
+                    italic=True
+                ),
+                tellraw(
+                    text=": " + parse_emoji(message_content) + "\n",
+                    color="dark_gray",
+                    hover=tellraw(text="This is the message being replied to."),
+                    italic=True
+                )
+            )
+        else:
+            pre = tellraw(text="")
 
         a = tellraw(
-            text="["
+            text= "╚> [" if message.reference else "["
         )
         b = tellraw(
             text="Discord",
@@ -123,9 +156,9 @@ class BridgeCog(commands.Cog):
                     text="]"
                 ))
 
-            combined = tellraw.multiple_tellraw(a, b, c, d, e, *attachment_list)
+            combined = tellraw.multiple_tellraw(pre, a, b, c, d, e, *attachment_list)
         else:
-            combined = tellraw.multiple_tellraw(a, b, c, d, e)
+            combined = tellraw.multiple_tellraw(pre, a, b, c, d, e)
         
         self.bot.console_pane.send_keys("tellraw @a " + combined)
     
