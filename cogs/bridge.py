@@ -67,18 +67,18 @@ class BridgeCog(commands.Cog):
 
             pre = tellraw.multiple_tellraw(
                 tellraw(
-                    text="[REPLY] ",
-                    color="dark_gray",
+                    text="╔< [REPLY] ",
+                    color="gray",
                     italic=True
                 ),
                 tellraw(
                     text=message_author.display_name,
-                    color="dark_gray",
+                    color="gray",
                     italic=True
                 ),
                 tellraw(
                     text=": " + parse_emoji(message_content) + "\n",
-                    color="dark_gray",
+                    color="gray",
                     hover=tellraw(text="This is the message being replied to."),
                     italic=True
                 )
