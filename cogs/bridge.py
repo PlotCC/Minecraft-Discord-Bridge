@@ -67,7 +67,7 @@ class BridgeCog(commands.Cog):
 
             pre = tellraw.multiple_tellraw(
                 tellraw(
-                    text="╔< [REPLY] ",
+                    text="[REPLY] ",
                     color="gray",
                     italic=True
                 ),
