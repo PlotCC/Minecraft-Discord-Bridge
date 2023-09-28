@@ -22,6 +22,7 @@ class BridgeCog(commands.Cog):
         if message.author == self.bot.user:
             # Parse message embed for server restart notifications.
             # This is obviously the best way to do this.
+            # TODO: Make this part less good. (sarcasm)
 
             if len(message.embeds) > 0:
                 embed_0 = message.embeds[0]
