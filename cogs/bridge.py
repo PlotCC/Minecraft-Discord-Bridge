@@ -68,19 +68,27 @@ class BridgeCog(commands.Cog):
         if config.webhook["insertion_available"]:
             d = tellraw(
                 text=message.author.display_name,
-                insertion="<@" + str(message.author.id) + "> ",
-                hover=tellraw(text="Shift+click to @ this user!", color="yellow")
+                insertion=f"reply:{str(message.id)}:pingoff ",
+                hover=tellraw(text="Shift+click to reply to this message!", color="yellow")
+            )
+            e = tellraw(
+                text=": " + parse_emoji(message.content),
+                insertion=f"reply:{str(message.id)}:pingoff ",
+                hover=tellraw(text="Shift+click to reply to this message!", color="yellow")
             )
             
         else:
             d = tellraw(
                 text=message.author.display_name,
-                insertion="<@" + str(message.author.id) + "> ",
+                insertion=f"reply:{str(message.id)}:pingoff ",
                 hover=tellraw(text=message.author.mention, color="yellow")
             )
-        e = tellraw(
-            text=": " + parse_emoji(message.content)
-        )
+            e = tellraw(
+                text=": " + parse_emoji(message.content),
+                insertion=f"reply:{str(message.id)}:pingoff ",
+                hover=tellraw(text=message.author.mention, color="yellow")
+            )
+        
 
         combined = None
 
