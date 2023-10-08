@@ -1,7 +1,10 @@
 import discord
-import requests
+import aiohttp
+import logging
 
 import config
+
+LOG = logging.getLogger("WEBHOOK_BRIDGE")
 
 class Bridge:
     """A simple class which holds some methods for interacting with the webhook."""
@@ -20,14 +23,17 @@ class Bridge:
         # If we haven't already cached their avatar icon, grab the icon.
         if username not in self.username_cache:
             # get the UUID of the player
-            print(f"Attempt to cache username: {username}")
-            uuid_response = requests.get(config.icons["uuid_lookup_url"] + username)
-            if uuid_response.status_code == 200:
-                uuid_json = uuid_response.json()
-                print(f"200. UUID: {uuid_json['id']}")
-                print(f"Avatar url: {config.icons['avatar_lookup_url'] + uuid_json['id']}" + ".png?size=128&default=MHF_Steve")
-                self.username_cache[username] = config.icons["avatar_lookup_url"] + uuid_json["id"] + ".png?size=128&default=MHF_Steve"
-                avatar_url = self.username_cache[username]
+            LOG.info(f"Attempt to cache username: {username}")
+            async with aiohttp.ClientSession() as session:
+                async with session.get(config.icons["uuid_lookup_url"] + username) as response:
+                    if response.status == 200:
+                        uuid_json = await response.json()
+                        LOG.info(f"200. UUID: {uuid_json['id']}")
+                        LOG.info(f"Avatar url: {config.icons['avatar_lookup_url'] + uuid_json['id']}" + ".png?size=128&default=MHF_Steve")
+                        self.username_cache[username] = config.icons["avatar_lookup_url"] + uuid_json["id"] + ".png?size=128&default=MHF_Steve"
+                        avatar_url = self.username_cache[username]
+                    else:
+                        LOG.warn(f"Failed to cache username: {username}")
         else:
             # If it is cached, just use that.
             avatar_url = self.username_cache[username]
@@ -41,8 +47,14 @@ class Bridge:
         await self.webhook.send(content=message, embed=embed, username=config.webhook["server_name"], avatar_url = config.icons["minecraft"], allowed_mentions=discord.AllowedMentions(everyone=False))
     
     # Send a player chat to Discord.
-    async def on_player_message(self, username:str, message:str):
+    async def on_player_message_noreply(self, username:str, message:str):
         await self.__send_player_message(username, message=message)
+    
+    # Send a player chat with a reply embed to Discord.
+    async def on_player_message_reply(self, username:str, message:str, reply_author:str, reply_message:str):
+        embed = discord.Embed(color=0x0000ff, description=f":leftwards_arrow_with_hook: **{reply_author}** said: {reply_message}")
+
+        await self.__send_player_message(username, message=message, embed=embed)
 
     # Send a player join event to Discord.
     async def on_player_join(self, username:str):

@@ -11,7 +11,7 @@ import config
 path = pathlib.Path(__file__)
 BOT_SRC = str(path.parent.absolute())
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=config.bot["logging_level"])
 
 LOG = logging.getLogger("MAIN")
 
@@ -55,15 +55,6 @@ async def startup():
 
     # Get the console window pane.
     bot.console_pane = console_win.panes[0]
-
-    # Create the pane for the bridge.
-    if bot.session_existed:
-        bot.bridge_pane = console_win.panes[1]
-    else:
-        bot.bridge_pane = console_win.split_window(attach=True)
-
-    # Start the bridge.
-    bot.bridge_pane.send_keys(config.programs["bridge"])
 
     # Block chat until the server is confirmed online.
     bot.block_chat = True
