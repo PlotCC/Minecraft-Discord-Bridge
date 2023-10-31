@@ -32,7 +32,7 @@ def get_server_process():
     # Get the java process.
     def descend(node):
         for child in node["children"]:
-            if child["process_name"].find("java") != -1 and child["arguments"].endswith("nogui"):
+            if child["process_name"].find("java"):
                 return child
             else:
                 return descend(child)
