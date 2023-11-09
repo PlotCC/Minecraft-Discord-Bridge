@@ -34,7 +34,7 @@ class BridgeCog(commands.Cog):
                         tellraw(text="] "),
                         tellraw(text=match.group(1),color="yellow")
                     )
-                    self.bot.console_pane.send_keys("tellraw @a " + combined)
+                    self.bot.send_server_command("tellraw @a " + combined)
                     return
             if message.content == "Server restart will be cancelled.":
                 combined = tellraw.multiple_tellraw(
@@ -43,7 +43,7 @@ class BridgeCog(commands.Cog):
                     tellraw(text="] "),
                     tellraw(text="Server restart will be cancelled.",color="orange")
                 )
-                self.bot.console_pane.send_keys("tellraw @a " + combined)
+                self.bot.send_server_command("tellraw @a " + combined)
                 return
             return
         
@@ -160,7 +160,7 @@ class BridgeCog(commands.Cog):
         else:
             combined = tellraw.multiple_tellraw(pre, a, b, c, d, e)
         
-        self.bot.console_pane.send_keys("tellraw @a " + combined)
+        self.bot.send_server_command("tellraw @a " + combined)
     
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
@@ -238,7 +238,7 @@ class BridgeCog(commands.Cog):
                 color="gold"
             )
         )
-        self.bot.console_pane.send_keys("tellraw @a " + combined)
+        self.bot.send_server_command("tellraw @a " + combined)
     
 async def setup(bot):
     await bot.add_cog(BridgeCog(bot))

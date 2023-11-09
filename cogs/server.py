@@ -11,15 +11,15 @@ from utilities.parse_tmux_pid import get_tmux_pid
 
 LOG = logging.getLogger("MC-SERVER")
 
-
+# Stop the server.
 def stop_server(bot):
-    bot.console_pane.send_keys("stop")
+    bot.send_server_command("stop")
 
-
+# Start the server.
 def start_server(bot):
     bot.console_pane.reset()
-    bot.console_pane.send_keys("cd " + config.server["root"])
-    bot.console_pane.send_keys(config.programs["minecraft"])
+    bot.send_console_command("cd " + config.server["root"])
+    bot.send_console_command(config.programs["tmux"])
 
 
 def get_server_process():
@@ -109,6 +109,28 @@ class ServerCog(commands.Cog):
         # Start the autmatic tasks.
         self.automatic_stop_task.start()
         self.check_server_running.start()
+
+        # Function to send a command to the server console, to be used by cogs rather than invoking the console directly.
+        def send_server_command(command: str):
+            """
+            Send a command to the console. This fails if the server is offline.
+            """
+            if not self.running:
+                raise Exception("Server is offline, cannot send command to server console.")
+            
+            bot.console_pane.send_keys(command)
+        bot.send_server_command = send_server_command
+
+        # Function to send a command to the console, to be used by cogs rather than invoking the console directly.
+        def send_console_command(command: str):
+            """
+            Send a command to the console. This fails if the server is online.
+            """
+            if self.running:
+                raise Exception("Server is online, cannot send command to console.")
+            
+            bot.console_pane.send_keys(command)
+        bot.send_console_command = send_console_command
 
     @app_commands.command(
         name="shutdown", description="Shut down the Minecraft server."
@@ -250,7 +272,7 @@ class ServerCog(commands.Cog):
     )
     async def get_online(self, interaction: discord.Interaction) -> None:
         if self.running:
-            self.bot.console_pane.send_keys("list")
+            self.bot.send_server_command("list")
             await interaction.response.send_message(
                 "Fetching player list...", delete_after=2
             )
