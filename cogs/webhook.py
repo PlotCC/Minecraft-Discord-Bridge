@@ -85,6 +85,7 @@ class WebhookCog(commands.Cog):
                 webhook = discord.Webhook.from_url(config.webhook["url"], session=session)
                 LOG.info("Webhook connected.")
                 whb = Bridge(webhook)  # Create the webhook bridge object.
+                self.bot.bridge = whb  # Set the bot's bridge object to the one we just created.
 
                 LOG.info("Setting up regexes.")
 
