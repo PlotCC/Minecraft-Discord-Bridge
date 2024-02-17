@@ -11,7 +11,7 @@ import config
 
 LOG = logging.getLogger("BACKUP")
 
-async def run_command_subprocess(command: str, timeout: int = 60):
+async def run_command_subprocess(command: str, timeout: int = 600):
     """
     Run a command in a subprocess.
     """
