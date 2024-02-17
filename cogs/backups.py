@@ -117,20 +117,27 @@ class BackupsCog(commands.Cog):
                 return True
         except Exception as e:
             LOG.error(f"Failed to backup server: {str(e)}")
-            self.bot.bridge_channel.send(
-                embed=discord.Embed(
-                    color=0xff0000,
-                    description=f":x: **Failed to backup server ({backup_type}, exception): {e}**"
+            try:
+                self.bot.bridge_channel.send(
+                    embed=discord.Embed(
+                        color=0xff0000,
+                        description=f":x: **Failed to backup server ({backup_type}, exception): {e}**"
+                    )
                 )
-            )
+            except:
+                None
 
-            # Notify players on the server the backup failed.
-            self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
-                tellraw(text="["),
-                tellraw(text="Server",color="red"),
-                tellraw(text="] "),
-                tellraw(text="Server backup failed!",color="red")
-            ))
+            try:
+                # Notify players on the server the backup failed.
+                self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
+                    tellraw(text="["),
+                    tellraw(text="Server",color="red"),
+                    tellraw(text="] "),
+                    tellraw(text="Server backup failed!",color="red")
+                ))
+            except:
+                None
+
             return False
 
         return False # This should never be reached, but return false just in case cosmic rays hit the server or something.
