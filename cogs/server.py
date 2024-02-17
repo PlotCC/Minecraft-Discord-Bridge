@@ -272,6 +272,7 @@ class ServerCog(commands.Cog):
     )
     async def get_online(self, interaction: discord.Interaction) -> None:
         if self.running:
+            self.bot.list_command_triggered = True
             self.bot.send_server_command("list")
             await interaction.response.send_message(
                 "Fetching player list...", delete_after=2
