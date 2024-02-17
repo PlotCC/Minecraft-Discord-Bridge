@@ -270,9 +270,6 @@ class ServerCog(commands.Cog):
     @app_commands.command(
         name="list-players", description="Get the amount of players currently online."
     )
-    @app_commands.command(
-        name="list", description="Get the amount of players currently online."
-    )
     async def get_online(self, interaction: discord.Interaction) -> None:
         if self.running:
             self.bot.send_server_command("list")
