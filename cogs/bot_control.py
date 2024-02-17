@@ -22,13 +22,21 @@ class BotControlCog(commands.Cog):
     
     @tasks.loop(seconds=60)
     async def update_server_status(self):
-        await self.bot.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.playing,
-                name=config.server["name"],
-                state=f"{self.bot.players_online if self.bot.players_online else 0} player{'' if self.bot.players_online and self.bot.players_online == 1 else 's'} online"
+        if hasattr(self.bot, "players_online"):
+            await self.bot.change_presence(
+                activity=discord.Activity(
+                    type=discord.ActivityType.playing,
+                    name=config.server["name"],
+                    state=f"{self.bot.players_online if self.bot.players_online else 0} player{'' if self.bot.players_online and self.bot.players_online == 1 else 's'} online"
+                )
             )
-        )
+        else:
+            await self.bot.change_presence(
+                activity=discord.Activity(
+                    type=discord.ActivityType.playing,
+                    name=config.server["name"]
+                )
+            )
 
     @commands.Cog.listener()
     async def on_ready(self):
