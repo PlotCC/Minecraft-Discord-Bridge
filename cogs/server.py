@@ -19,7 +19,7 @@ def stop_server(bot):
 def start_server(bot):
     bot.console_pane.reset()
     bot.send_console_command("cd " + config.server["root"])
-    bot.send_console_command(config.programs["tmux"])
+    bot.send_console_command(config.programs["minecraft"])
 
 
 def get_server_process():
@@ -269,6 +269,9 @@ class ServerCog(commands.Cog):
 
     @app_commands.command(
         name="list-players", description="Get the amount of players currently online."
+    )
+    @app_commands.command(
+        name="list", description="Get the amount of players currently online."
     )
     async def get_online(self, interaction: discord.Interaction) -> None:
         if self.running:
