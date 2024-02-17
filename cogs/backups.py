@@ -238,12 +238,10 @@ class BackupsCog(commands.Cog):
     async def on_ready(self):
         None
 
-    @commands.Cog.listener()
     async def cog_load(self):
         LOG.info("Backups cog is loading.")
         
 
-    @commands.Cog.listener()
     async def cog_unload(self):
         LOG.warn("Backups cog unloaded!")
         if self.auto_backup.is_running():
