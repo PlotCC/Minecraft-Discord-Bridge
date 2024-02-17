@@ -54,11 +54,7 @@ class BackupsCog(commands.Cog):
 
         command = f"zip -r {file_name} {config.backups['world_location']}"
 
-        #stdout, stderr, returncode = await run_command_subprocess(command)
-        # Just printing the command for now.
-        print(command)
-        returncode = 0
-        stderr = ""
+        stdout, stderr, returncode = await run_command_subprocess(command)
 
         # however, we will pretend to wait a bit for the command to finish.
         await asyncio.sleep(5)
@@ -86,22 +82,47 @@ class BackupsCog(commands.Cog):
             else:
                 backup_name = "Automatic"
 
+
+            # Notify players on the server a backup is occurring.
             try:
-                # Notify players on the server a backup is occurring.
                 self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
                     tellraw(text="["),
                     tellraw(text="Server",color="red"),
                     tellraw(text="] "),
                     tellraw(text=f"{backup_name} server backup starting, the game may lag for a bit!",color="yellow")
                 ))
+                self.backed_up_offline = False
             except:
                 # If we can't send the message, the server is offline.
                 if self.backed_up_offline and backup_type != "manual":
                     LOG.warn("Server is offline, skipping automatic backup.")
                     return False
                 self.backed_up_offline = True
+            
+            # Force the server to save the world.
+            try:
+                self.bot.send_server_command("save-all")
+                
+                # Wait for the save to complete.
+                await asyncio.sleep(5)
+            
+                self.bot.send_server_command("save-off")
+            except:
+                # It is fine if the server is offline, but we should log it.
+                LOG.warn("Server must be offline, save-all/save-off failed.")
+
 
             returncode, stderr = await self.backup_server(backup_type)
+
+            # Turn the server save back on.
+            try:
+                self.bot.send_server_command("save-on")
+            except Exception as e:
+                # It should *mostly* be fine if the server is offline, but we
+                # will log this just in case there is some other actual error.
+                LOG.warn(f"Failed to turn server save back on: {e}")
+                if not self.bot.block_chat:
+                    LOG.error("Server chat is not blocked, but failed to send save-on command.")
 
             if returncode != 0:
                 LOG.error(f"Failed to backup server (code {returncode}): {stderr}")
