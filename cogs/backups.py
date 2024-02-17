@@ -126,7 +126,7 @@ class BackupsCog(commands.Cog):
 
             if returncode != 0:
                 LOG.error(f"Failed to backup server (code {returncode}): {stderr}")
-                self.bot.bridge_channel.send(
+                await self.bot.bridge_channel.send(
                     embed=discord.Embed(
                         color=0xff0000,
                         description=f":x: **Failed to backup server ({backup_type}, code {returncode}): {stderr}**"
@@ -153,7 +153,7 @@ class BackupsCog(commands.Cog):
         except Exception as e:
             LOG.error(f"Failed to backup server: {str(e)}")
             try:
-                self.bot.bridge_channel.send(
+                await self.bot.bridge_channel.send(
                     embed=discord.Embed(
                         color=0xff0000,
                         description=f":x: **Failed to backup server ({backup_type}, exception): {e}**"
