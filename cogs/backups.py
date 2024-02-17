@@ -47,6 +47,9 @@ async def backup_server(backup_type: str):
     returncode = 0
     stderr = ""
 
+    # however, we will pretend to wait a bit for the command to finish.
+    await asyncio.sleep(5)
+
     if returncode != 0:
         LOG.error(f"Failed to backup server: {stderr}")
 
@@ -79,7 +82,7 @@ class BackupsCog(commands.Cog):
                 tellraw(text="["),
                 tellraw(text="Server",color="red"),
                 tellraw(text="] "),
-                tellraw(text="Server backup starting, the game may lag for a bit!",color="yellow")
+                tellraw(text=f"{'Manual' if backup_type == 'manual' else 'Automatic'} server backup starting, the game may lag for a bit!",color="yellow")
             ))
 
             returncode, stderr = await backup_server(backup_type, timeout=600)
