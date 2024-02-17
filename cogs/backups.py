@@ -56,11 +56,8 @@ class BackupsCog(commands.Cog):
 
         stdout, stderr, returncode = await run_command_subprocess(command)
 
-        # however, we will pretend to wait a bit for the command to finish.
-        await asyncio.sleep(5)
-
         if returncode != 0:
-            LOG.error(f"Failed to backup server: {stderr}")
+            LOG.warn(f"Failed to backup server: {stderr}")
 
             LOG.warn(f"Removing partial backup: {file_name}")
             # We should be careful that we're not wildly deleting things here.
@@ -151,7 +148,7 @@ class BackupsCog(commands.Cog):
                 ))
                 return True
         except Exception as e:
-            LOG.error(f"Failed to backup server: {str(e)}")
+            LOG.error(f"Failed to backup server, threw exception: {str(e)}")
             try:
                 await self.bot.bridge_channel.send(
                     embed=discord.Embed(
