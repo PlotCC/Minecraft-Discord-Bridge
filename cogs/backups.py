@@ -23,44 +23,6 @@ async def run_command_subprocess(command: str, timeout: int = 60):
         raise
     return stdout.decode(), stderr.decode(), proc.returncode
 
-async def backup_server(backup_type: str):
-    """
-    Backup the server.
-    """
-    LOG.info("Backing up server.")
-
-    file_name = None
-    if config.backups["backup_location"] == "":
-        file_name = f"backup-{backup_type}-{datetime.datetime.now().strftime('%Y-%m-%d')}-{datetime.datetime.now().strftime('%H-%M-%S')}.zip"
-    else:
-        file_name = config.backups["backup_name_format"].format(
-            type=backup_type,
-            date=datetime.datetime.now().strftime('%Y-%m-%d'),
-            time=datetime.datetime.now().strftime('%H-%M-%S')
-        )
-
-    command = f"zip -r {file_name} {config.backups['world_location']}"
-
-    #stdout, stderr, returncode = await run_command_subprocess(command)
-    # Just printing the command for now.
-    print(command)
-    returncode = 0
-    stderr = ""
-
-    # however, we will pretend to wait a bit for the command to finish.
-    await asyncio.sleep(5)
-
-    if returncode != 0:
-        LOG.error(f"Failed to backup server: {stderr}")
-
-        LOG.warn(f"Removing partial backup: {file_name}")
-        # We should be careful that we're not wildly deleting things here.
-        os.remove(file_name)
-    else:
-        LOG.info("Server backup complete.")
-
-    return returncode, stderr
-
 
 class BackupsCog(commands.Cog):
     """
@@ -70,6 +32,45 @@ class BackupsCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.auto_backup.start()
+        self.backed_up_offline = False
+
+    async def backup_server(self, backup_type: str):
+        """
+        Backup the server.
+        """
+        LOG.info("Backing up server.")
+
+        file_name = None
+        if config.backups["backup_location"] == "":
+            file_name = f"backup-{backup_type}-{datetime.datetime.now().strftime('%Y-%m-%d')}-{datetime.datetime.now().strftime('%H-%M-%S')}.zip"
+        else:
+            file_name = config.backups["backup_name_format"].format(
+                type=backup_type,
+                date=datetime.datetime.now().strftime('%Y-%m-%d'),
+                time=datetime.datetime.now().strftime('%H-%M-%S')
+            )
+
+        command = f"zip -r {file_name} {config.backups['world_location']}"
+
+        #stdout, stderr, returncode = await run_command_subprocess(command)
+        # Just printing the command for now.
+        print(command)
+        returncode = 0
+        stderr = ""
+
+        # however, we will pretend to wait a bit for the command to finish.
+        await asyncio.sleep(5)
+
+        if returncode != 0:
+            LOG.error(f"Failed to backup server: {stderr}")
+
+            LOG.warn(f"Removing partial backup: {file_name}")
+            # We should be careful that we're not wildly deleting things here.
+            os.remove(file_name)
+        else:
+            LOG.info("Server backup complete.")
+
+        return returncode, stderr
 
     
     # Back up the server. Returns true on success, false any time else.
@@ -77,15 +78,28 @@ class BackupsCog(commands.Cog):
         # Step 1: Backup the server.
         LOG.info("Backing up server.")
         try:
-            # Notify players on the server a backup is occurring.
-            self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
-                tellraw(text="["),
-                tellraw(text="Server",color="red"),
-                tellraw(text="] "),
-                tellraw(text=f"{'Manual' if backup_type == 'manual' else 'Automatic'} server backup starting, the game may lag for a bit!",color="yellow")
-            ))
+            backup_name = "Manual"
+            if backup_type == "hourly":
+                backup_name = "Hourly"
+            else:
+                backup_name = "Automatic"
 
-            returncode, stderr = await backup_server(backup_type)
+            try:
+                # Notify players on the server a backup is occurring.
+                self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
+                    tellraw(text="["),
+                    tellraw(text="Server",color="red"),
+                    tellraw(text="] "),
+                    tellraw(text=f"{backup_name} server backup starting, the game may lag for a bit!",color="yellow")
+                ))
+            except:
+                # If we can't send the message, the server is offline.
+                if self.backed_up_offline and backup_type != "manual":
+                    LOG.warn("Server is offline, skipping automatic backup.")
+                    return False
+                self.backed_up_offline = True
+
+            returncode, stderr = await self.backup_server(backup_type)
 
             if returncode != 0:
                 LOG.error(f"Failed to backup server (code {returncode}): {stderr}")
@@ -110,7 +124,7 @@ class BackupsCog(commands.Cog):
                 # Notify players on the server the backup is complete.
                 self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
                     tellraw(text="["),
-                    tellraw(text="Server",color="red"),
+                    tellraw(text="Server",color="green"),
                     tellraw(text="] "),
                     tellraw(text="Server backup complete!",color="yellow")
                 ))
@@ -153,7 +167,7 @@ class BackupsCog(commands.Cog):
         await interaction.response.defer(thinking=True)
         
         try:
-            returncode, stderr = await backup_server("manual")
+            returncode, stderr = await self.backup_wrapper("manual")
 
             if returncode != 0:
                 await interaction.followup.send(f"Failed to backup server (code {returncode}): {stderr}")
