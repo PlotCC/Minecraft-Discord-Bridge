@@ -41,7 +41,7 @@ class BackupsCog(commands.Cog):
         LOG.info("Backing up server.")
 
         file_name = None
-        if config.backups["backup_location"] == "":
+        if config.backups["backup_name_format"] == "":
             file_name = f"backup-{backup_type}-{datetime.datetime.now().strftime('%Y-%m-%d')}-{datetime.datetime.now().strftime('%H-%M-%S')}.zip"
         else:
             file_name = config.backups["backup_name_format"].format(
@@ -49,6 +49,8 @@ class BackupsCog(commands.Cog):
                 date=datetime.datetime.now().strftime('%Y-%m-%d'),
                 time=datetime.datetime.now().strftime('%H-%M-%S')
             )
+
+        file_name = os.path.join(config.backups["backup_location"], file_name)
 
         command = f"zip -r {file_name} {config.backups['world_location']}"
 
@@ -119,8 +121,6 @@ class BackupsCog(commands.Cog):
                 ))
                 return False
             else:
-                LOG.info("Server backup complete.")
-
                 # Notify players on the server the backup is complete.
                 self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
                     tellraw(text="["),
