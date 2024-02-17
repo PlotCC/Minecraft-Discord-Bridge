@@ -236,6 +236,7 @@ class WebhookCog(commands.Cog):
             self.bot.players_online = int(match.group(1))
 
             if hasattr(self.bot, "list_command_triggered") and self.bot.list_command_triggered:
+                self.bot.list_command_triggered = False
                 LOG.info("Sending server list...")
                 await whb.on_server_list(match.group(1), match.group(2), match.group(3))
                 return
