@@ -25,6 +25,9 @@ bot = dict(
 )
 
 server = dict(
+    # Displayed as "Playing <name>" in the bot's status.
+    name = "Minecraft Server",
+
     # Whether automatic restarts should occur or not.
     do_automatic_restart = True,
 
