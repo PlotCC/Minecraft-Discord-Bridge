@@ -1,10 +1,8 @@
 import discord
 from discord.ext import commands, tasks
 from discord import app_commands
-import datetime
 import logging
 import asyncio
-import os
 
 import config
 
@@ -22,12 +20,20 @@ class BotControlCog(commands.Cog):
     
     @tasks.loop(seconds=60)
     async def update_server_status(self):
+        try:
+            self.bot.send_server_command("list")
+        except:
+            None
+
+        # Give just enough time for the server to respond.
+        await asyncio.sleep(1)
+
         if hasattr(self.bot, "players_online"):
             await self.bot.change_presence(
                 activity=discord.Activity(
                     type=discord.ActivityType.playing,
                     name=config.server["name"],
-                    state=f"{self.bot.players_online if self.bot.players_online else 0} player{'' if self.bot.players_online and self.bot.players_online == 1 else 's'} online"
+                    state=f"{self.bot.players_online if self.bot.players_online else 0} player{'' if self.bot.players_online == 1 else 's'} online"
                 )
             )
         else:

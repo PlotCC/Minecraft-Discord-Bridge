@@ -233,8 +233,12 @@ class WebhookCog(commands.Cog):
 
         # Server list action
         async def server_list(match):
-            LOG.info("Server list sending...")
-            await whb.on_server_list(match.group(1), match.group(2), match.group(3))
+            self.bot.players_online = int(match.group(1))
+
+            if hasattr(self.bot, "list_command_triggered") and self.bot.list_command_triggered:
+                LOG.info("Sending server list...")
+                await whb.on_server_list(match.group(1), match.group(2), match.group(3))
+                return
 
         insert_action(
             setup_action(
