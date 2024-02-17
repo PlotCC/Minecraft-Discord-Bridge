@@ -122,6 +122,17 @@ webhook = dict(
     insertion_available = False,
 )
 
+backups = dict(
+    backup_location = "/somewhere/backups/", # Absolute path to the backups folder.
+    world_location = "/somewhere/world/", # Absolute path to the world folder.
+
+    # The amount of backups of each type to keep.
+    hourly_backup_count = 12, # Keep x hours of backups.
+    weekly_backup_count = 3, # If this is anything above 0, it will keep one daily backup from each week as a weekly backup, storing up to x weeks of backups.
+
+    backup_name_format = "backup-{type}-{date}-{time}.zip",
+)
+
 programs = dict(
     # Minecraft program, this should start the minecraft server.
     minecraft = "./run.sh"
