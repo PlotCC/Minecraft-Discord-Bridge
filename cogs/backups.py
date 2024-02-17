@@ -71,7 +71,6 @@ class BackupsCog(commands.Cog):
     # Back up the server. Returns true on success, false any time else.
     async def backup_wrapper(self, backup_type: str) -> bool:
         # Step 1: Backup the server.
-        LOG.info("Backing up server.")
         try:
             backup_name = "Manual"
             if backup_type == "hourly":
@@ -148,7 +147,7 @@ class BackupsCog(commands.Cog):
                 ))
                 return True
         except Exception as e:
-            LOG.error(f"Failed to backup server, threw exception: {str(e)}")
+            LOG.error(f"Failed to backup server, threw exception: {type(e).__name__}, args: {e.args}, str: {e}")
             try:
                 await self.bot.bridge_channel.send(
                     embed=discord.Embed(
