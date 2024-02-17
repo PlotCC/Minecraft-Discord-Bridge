@@ -85,7 +85,7 @@ class BackupsCog(commands.Cog):
                 tellraw(text=f"{'Manual' if backup_type == 'manual' else 'Automatic'} server backup starting, the game may lag for a bit!",color="yellow")
             ))
 
-            returncode, stderr = await backup_server(backup_type, timeout=600)
+            returncode, stderr = await backup_server(backup_type)
 
             if returncode != 0:
                 LOG.error(f"Failed to backup server (code {returncode}): {stderr}")
@@ -153,7 +153,7 @@ class BackupsCog(commands.Cog):
         await interaction.response.defer(thinking=True)
         
         try:
-            returncode, stderr = await backup_server("manual", timeout=600)
+            returncode, stderr = await backup_server("manual")
 
             if returncode != 0:
                 await interaction.followup.send(f"Failed to backup server (code {returncode}): {stderr}")
