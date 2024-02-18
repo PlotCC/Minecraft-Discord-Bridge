@@ -13,6 +13,11 @@ path = pathlib.Path(__file__)
 BOT_SRC = str(path.parent.absolute())
 
 logging.basicConfig(level=config.bot["logging_level"])
+handler = logging.FileHandler(filename="bot-latest.log", encoding="utf-8", mode="w")
+dt_fmt = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+handler.setFormatter(formatter)
+logging.getLogger().addHandler(handler)
 
 LOG = logging.getLogger("MAIN")
 
