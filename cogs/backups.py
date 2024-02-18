@@ -307,6 +307,7 @@ class BackupsCog(commands.Cog):
             LOG.error("Failed to send backup digest to notification channel.")
     
     async def _auto_backup(self):
+        LOG.info("Starting automatic backup...")
         if (await self.backup_wrapper("hourly")):
             await self.cleanup_backups()
             await self.digest_backups()
