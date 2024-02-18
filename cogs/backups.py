@@ -12,7 +12,7 @@ import config
 
 LOG = logging.getLogger("BACKUP")
 
-async def run_command_subprocess(command: str, timeout: int = 600):
+async def run_command_subprocess(command: str, timeout: int = 900):
     """
     Run a command in a subprocess.
     """
@@ -303,8 +303,8 @@ class BackupsCog(commands.Cog):
             await self.bot.notification_channel.send(
                 embed=embed
             )
-        except:
-            LOG.error("Failed to send backup digest to notification channel.")
+        except Exception as e:
+            LOG.error(f"Failed to send backup digest to notification channel: {e}")
     
     async def _auto_backup(self):
         LOG.info("Starting automatic backup...")
