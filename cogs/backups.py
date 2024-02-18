@@ -303,8 +303,8 @@ class BackupsCog(commands.Cog):
             await self.bot.notification_channel.send(
                 embed=embed
             )
-        except Exception as e:
-            LOG.error(f"Failed to send backup digest to notification channel: {e}")
+        except:
+            LOG.error(f"Failed to send backup digest to notification channel: {traceback.format_exc()}")
     
     async def _auto_backup(self):
         LOG.info("Starting automatic backup...")
