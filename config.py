@@ -132,8 +132,6 @@ backups = dict(
     # The amount of backups of each type to keep.
     hourly_backup_count = 12, # Keep x hours of backups.
     weekly_backup_count = 3, # If this is anything above 0, it will keep one daily backup from each week as a weekly backup, storing up to x weeks of backups.
-
-    backup_name_format = "backup-{type}-{date}-{time}.zip",
 )
 
 programs = dict(

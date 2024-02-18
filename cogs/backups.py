@@ -41,15 +41,11 @@ class BackupsCog(commands.Cog):
         """
         LOG.info("Backing up server.")
 
-        file_name = None
-        if config.backups["backup_name_format"] == "":
-            file_name = f"backup-{backup_type}-{datetime.datetime.now().strftime('%Y-%m-%d')}-{datetime.datetime.now().strftime('%H-%M-%S')}.zip"
-        else:
-            file_name = config.backups["backup_name_format"].format(
-                type=backup_type,
-                date=datetime.datetime.now().strftime('%Y-%m-%d'),
-                time=datetime.datetime.now().strftime('%H-%M-%S')
-            )
+        file_name = "backup-{type}-{date}-{time}.zip".format(
+            type=backup_type,
+            date=datetime.datetime.now().strftime('%Y-%m-%d'),
+            time=datetime.datetime.now().strftime('%H-%M-%S')
+        )
 
         file_name = os.path.join(config.backups["backup_location"], file_name)
 
