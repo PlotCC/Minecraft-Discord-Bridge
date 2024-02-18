@@ -5,6 +5,7 @@ import datetime
 import logging
 import asyncio
 import os
+import traceback
 from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
 import config
@@ -53,6 +54,8 @@ class BackupsCog(commands.Cog):
         file_name = os.path.join(config.backups["backup_location"], file_name)
 
         command = f"zip -r {file_name} {config.backups['world_location']}"
+
+        LOG.info(f"Command: {command}")
 
         stdout, stderr, returncode = await run_command_subprocess(command)
 
@@ -122,7 +125,7 @@ class BackupsCog(commands.Cog):
 
             if returncode != 0:
                 LOG.error(f"Failed to backup server (code {returncode}): {stderr}")
-                await self.bot.bridge_channel.send(
+                await self.bot.notification_channel.send(
                     embed=discord.Embed(
                         color=0xff0000,
                         description=f":x: **Failed to backup server ({backup_type}, code {returncode}): {stderr}**"
@@ -149,7 +152,8 @@ class BackupsCog(commands.Cog):
         except Exception as e:
             LOG.error(f"Failed to backup server, threw exception: {type(e).__name__}, args: {e.args}, str: {e}")
             try:
-                await self.bot.bridge_channel.send(
+                self.bot.notifications
+                await self.bot.notification_channel.send(
                     embed=discord.Embed(
                         color=0xff0000,
                         description=f":x: **Failed to backup server ({backup_type}, exception): {e}**"
@@ -173,9 +177,9 @@ class BackupsCog(commands.Cog):
 
         return False # This should never be reached, but return false just in case cosmic rays hit the server or something.
 
+    # @app_commands.checks.cooldown(1, 180.0)
 
     @app_commands.command(name="backup-now", description="Backup the minecraft server right now.")
-    @app_commands.checks.cooldown(1, 180.0)
     @app_commands.checks.has_permissions(administrator=True)
     async def backup_now(self, interaction: discord.Interaction) -> None:
         """
@@ -184,15 +188,18 @@ class BackupsCog(commands.Cog):
         await interaction.response.defer(thinking=True)
         
         try:
-            returncode, stderr = await self.backup_wrapper("manual")
+            LOG.info("Manual backup starting...")
+            ok = await self.backup_wrapper("manual")
 
-            if returncode != 0:
-                await interaction.followup.send(f"Failed to backup server (code {returncode}): {stderr}")
-            else:
+            if ok:
                 await interaction.followup.send("Server backup complete.")
+            else:
+                await interaction.followup.send(f"Failed to backup server, check logs for details.")
         except Exception as e:
             await interaction.followup.send("Failed to backup server: " + str(e))
 
+            # Log stacktrace to console
+            LOG.error(traceback.format_exc())
 
     @app_commands.command(name="restore", description="Restore a backup by its ID.")
     @app_commands.describe(
@@ -285,7 +292,7 @@ class BackupsCog(commands.Cog):
         if self.auto_backup.is_running():
             self.auto_backup.stop()
         try:
-            await self.bot.bridge_channel.send(":warning: Backups cog unloaded.")
+            await self.bot.notification_channel.send(":warning: Backups cog unloaded.")
         except Exception as e:
             LOG.error(f"Failed to send cog unload notification: {e}")
 
