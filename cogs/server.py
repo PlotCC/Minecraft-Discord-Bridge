@@ -94,7 +94,6 @@ class ServerCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.session_message = None
-        self.notification_channel = None
         self.server_pid = None
         self.running = False
         self.stopping = False
@@ -392,7 +391,7 @@ class ServerCog(commands.Cog):
                     if config.server["ping_role_in_bridge"]:
                         content = self.notification_ping
                     else:
-                        await self.notification_channel.send(
+                        await self.bot.notification_channel.send(
                             self.notification_ping
                             + " The server has crashed 5 times in a row and has been locked. Please investigate."
                         )
@@ -418,7 +417,7 @@ class ServerCog(commands.Cog):
                     if config.server["ping_role_in_bridge"]:
                         content = self.notification_ping
                     else:
-                        await self.notification_channel.send(
+                        await self.bot.notification_channel.send(
                             self.notification_ping
                             + " The server has crashed and is restarting."
                         )
@@ -445,7 +444,7 @@ class ServerCog(commands.Cog):
                     "    Not getting notification channel, ping_role_in_bridge is true. Ping will be appended to the message in the bridge channel."
                 )
             else:
-                self.notification_channel = self.bot.get_channel(
+                self.bot.notification_channel = self.bot.get_channel(
                     config.server["notification_channel_id"]
                 )
                 LOG.info("    Got notification channel.")
@@ -504,7 +503,7 @@ class ServerCog(commands.Cog):
             self.check_crash_loop.cancel() # This one doesn't need to safely exit.
 
         try:
-            await self.bot.bridge_channel.send(":warning: Server cog unloaded.")
+            await self.bot.notification_channel.send(":warning: Server cog unloaded.")
         except Exception as e:
             LOG.error(f"Failed to send cog unload notification: {e}")
 
