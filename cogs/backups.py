@@ -80,7 +80,7 @@ class BackupsCog(commands.Cog):
 
             # Notify players on the server a backup is occurring.
             try:
-                self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
+                await self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
                     tellraw(text="["),
                     tellraw(text="Server",color="red"),
                     tellraw(text="] "),
@@ -96,12 +96,12 @@ class BackupsCog(commands.Cog):
             
             # Force the server to save the world.
             try:
-                self.bot.send_server_command("save-all")
+                await self.bot.send_server_command("save-all")
                 
                 # Wait for the save to complete.
                 await asyncio.sleep(5)
             
-                self.bot.send_server_command("save-off")
+                await self.bot.send_server_command("save-off")
             except:
                 # It is fine if the server is offline, but we should log it.
                 LOG.warn("Server must be offline, save-all/save-off failed.")
@@ -111,7 +111,7 @@ class BackupsCog(commands.Cog):
 
             # Turn the server save back on.
             try:
-                self.bot.send_server_command("save-on")
+                await self.bot.send_server_command("save-on")
             except Exception as e:
                 # It should *mostly* be fine if the server is offline, but we
                 # will log this just in case there is some other actual error.
@@ -129,7 +129,7 @@ class BackupsCog(commands.Cog):
                 )
 
                 # Notify players on the server the backup failed.
-                self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
+                await self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
                     tellraw(text="["),
                     tellraw(text="Server",color="red"),
                     tellraw(text="] "),
@@ -138,7 +138,7 @@ class BackupsCog(commands.Cog):
                 return False
             else:
                 # Notify players on the server the backup is complete.
-                self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
+                await self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
                     tellraw(text="["),
                     tellraw(text="Server",color="green"),
                     tellraw(text="] "),
@@ -160,7 +160,7 @@ class BackupsCog(commands.Cog):
 
             try:
                 # Notify players on the server the backup failed.
-                self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
+                await self.bot.send_server_command("tellraw @a " + tellraw.multiple_tellraw(
                     tellraw(text="["),
                     tellraw(text="Server",color="red"),
                     tellraw(text="] "),
@@ -374,18 +374,23 @@ class BackupsCog(commands.Cog):
                 description="All lists are displayed newest to oldest."
             )
 
+            def shorten_string(string: str, length: int = 1000) -> str:
+                if len(string) > length:
+                    return string[:length] + "..."
+                return string
+
             if len(hourly) > 0:
-                embed.add_field(name="Hourly", value="```\n" + "\n".join(hourly) + "\n```", inline=False)
+                embed.add_field(name="Hourly", value="```\n" + shorten_string("\n".join(hourly)) + "\n```", inline=False)
             if len(daily) > 0:
-                embed.add_field(name="Daily", value="```\n" + "\n".join(daily) + "\n```", inline=False)
+                embed.add_field(name="Daily", value="```\n" + shorten_string("\n".join(daily)) + "\n```", inline=False)
             if len(weekly) > 0:
-                embed.add_field(name="Weekly", value="```\n" + "\n".join(weekly) + "\n```", inline=False)
+                embed.add_field(name="Weekly", value="```\n" + shorten_string("\n".join(weekly)) + "\n```", inline=False)
             if len(others) > 0:
-                embed.add_field(name="Other", value="```\n" + "\n".join(others) + "\n```", inline=False)
+                embed.add_field(name="Other", value="```\n" + shorten_string("\n".join(others)) + "\n```", inline=False)
             
             await interaction.followup.send(embed=embed)
-        except:
-            await interaction.followup.send("Failed to get the list of backups.")
+        except Exception as e:
+            await interaction.followup.send(f"Failed to get the list of backups: {e}")
     
     
     async def on_error(self, event, *args, **kwargs):

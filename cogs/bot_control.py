@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands, tasks
-from discord import app_commands
 import logging
 import asyncio
 
@@ -21,7 +20,7 @@ class BotControlCog(commands.Cog):
     @tasks.loop(seconds=60)
     async def update_server_status(self):
         try:
-            self.bot.send_server_command("list")
+            await self.bot.send_server_command("list")
         except:
             None
 

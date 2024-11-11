@@ -21,7 +21,10 @@ bot = dict(
     prefix = ">> ",
 
     # The log level for the bot.
-    logging_level = logging.INFO
+    logging_level = logging.INFO,
+
+    # The bot's owner's user ID.
+    owner_id = 0,
 )
 
 server = dict(
@@ -49,6 +52,19 @@ server = dict(
     # If you want the bot to ping this role in the same message that it notifies the bridge channel of a crash, set this to True.
     # Otherwise, it will send a separate message to the notification channel.
     ping_role_in_bridge = False,
+
+    # rcon password for the server.
+    rcon_password = "password",
+
+    # rcon IP address
+    rcon_host = "127.0.0.1",
+
+    # rcon port
+    rcon_port = 25575,
+
+    # Channel ID for rcon. All messages sent to this channel will be sent to the server console.
+    # However, only messages from the bot owner will be sent.
+    rcon_channel_id = 0,
 )
 
 tmux_data = dict(
@@ -96,6 +112,9 @@ webhook = dict(
 
         # Should return two match groups -- playername and advancement.
         advancement = "",
+
+        # Player attempted to join and is not whitelisted -- playername.
+        not_whitelisted = "",
     ),
 
     # The webhook actions that are enabled and searched for in the logs.
@@ -111,6 +130,7 @@ webhook = dict(
         server_list = True,
         console_message = True,
         advancement = True,
+        not_whitelisted = True,
     ),
 
     # The name of the server, displayed when events like shutdowns or player joins occur.
@@ -137,7 +157,7 @@ backups = dict(
 
 programs = dict(
     # Minecraft program, this should start the minecraft server.
-    minecraft = "./run.sh"
+    minecraft = "./run.sh",
 )
 
 icons = dict(
@@ -151,5 +171,5 @@ icons = dict(
     minecraft = "http://media.fatboychummy.games/bots/mc_bridge/minecraft_icon.png",
 
     # Console icon, displayed when someone uses /say in the server console.
-    console = "http://media.fatboychummy.games/bots/mc_bridge/terminal.png"
+    console = "http://media.fatboychummy.games/bots/mc_bridge/terminal.png",
 )

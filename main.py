@@ -12,6 +12,13 @@ import config
 path = pathlib.Path(__file__)
 BOT_SRC = str(path.parent.absolute())
 
+# Copy the last bot-latest.log to bot-old.log, if it exists.
+if os.path.isfile("bot-latest.log"):
+    if os.path.isfile("bot-old.log"):
+        os.remove("bot-old.log")
+    os.rename("bot-latest.log", "bot-old.log")
+
+
 logging.basicConfig(level=config.bot["logging_level"])
 handler = logging.FileHandler(filename="bot-latest.log", encoding="utf-8", mode="w")
 dt_fmt = '%Y-%m-%d %H:%M:%S'

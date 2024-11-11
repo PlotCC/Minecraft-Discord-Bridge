@@ -4,16 +4,16 @@ from discord import app_commands
 import datetime
 import logging
 import asyncio
-import re
 
+from rcon import Rcon
 import config
 from utilities.parse_tmux_pid import get_tmux_pid
 
 LOG = logging.getLogger("MC-SERVER")
 
 # Stop the server.
-def stop_server(bot):
-    bot.send_server_command("stop")
+async def stop_server(bot):
+    await bot.send_server_command("stop")
 
 # Start the server.
 def start_server(bot):
@@ -83,6 +83,7 @@ def get_time_after(time: datetime.time, seconds: int) -> datetime.time:
     return datetime.time(hour=hour, minute=minute, second=second, tzinfo=time.tzinfo)
 
 
+
 class ServerCog(commands.Cog):
     """
     This cog controls the minecraft server itself.
@@ -104,20 +105,22 @@ class ServerCog(commands.Cog):
         self.skip_restart = 0
         self.restart_time = 0
         self.crash_count = 0
+        self.rcon = Rcon()
 
         # Start the autmatic tasks.
         self.automatic_stop_task.start()
         self.check_server_running.start()
 
         # Function to send a command to the server console, to be used by cogs rather than invoking the console directly.
-        def send_server_command(command: str):
+        async def send_server_command(command: str):
             """
             Send a command to the console. This fails if the server is offline.
             """
             if not self.running:
                 raise Exception("Server is offline, cannot send command to server console.")
             
-            bot.console_pane.send_keys(command)
+            # bot.console_pane.send_keys(command)
+            await self.rcon.send(command)
         bot.send_server_command = send_server_command
 
         # Function to send a command to the console, to be used by cogs rather than invoking the console directly.
@@ -138,7 +141,7 @@ class ServerCog(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def shutdown(self, interaction: discord.Interaction) -> None:
         if self.running:
-            stop_server(self.bot)
+            await stop_server(self.bot)
             self.stopping = True
             await interaction.response.send_message(
                 "Server is shutting down. Please give it a minute before attempting to start it again."
@@ -266,21 +269,6 @@ class ServerCog(commands.Cog):
             ephemeral=True,
         )
 
-    @app_commands.command(
-        name="list-players", description="Get the amount of players currently online."
-    )
-    async def get_online(self, interaction: discord.Interaction) -> None:
-        if self.running:
-            self.bot.list_command_triggered = True
-            self.bot.send_server_command("list")
-            await interaction.response.send_message(
-                "Fetching player list...", delete_after=2
-            )
-        else:
-            await interaction.response.send_message(
-                "Server is offline!", ephemeral=True, delete_after=4
-            )
-
     @tasks.loop(seconds=1)
     async def automatic_restart_task(self):
         if self.cancel_restart:
@@ -300,7 +288,7 @@ class ServerCog(commands.Cog):
 
             if self.restart_time <= -1:
                 self.automatic_restart_task.stop()
-                stop_server(self.bot)
+                await stop_server(self.bot)
                 self.running = False
                 await asyncio.sleep(120)
                 if not self.running:

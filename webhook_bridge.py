@@ -102,5 +102,9 @@ class Bridge:
         
         await self.__send_server_message(embed=embed)
 
-    
+    # Send a notification when a player tries to join and is not whitelisted.
+    async def on_player_not_whitelisted(self, username:str):
+        embed = discord.Embed(color=0xff0000, description=f":no_entry: **{username}** tried to join but is not whitelisted. If this is you or a friend, run the /whitelist command to add them.")
+
+        await self.__send_server_message(embed=embed)
     
