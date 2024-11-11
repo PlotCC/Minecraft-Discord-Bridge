@@ -162,6 +162,7 @@ class ServerCommandsCog(commands.Cog):
 
     async def cog_unload(self):
         LOG.info("Commands cog is unloading.")
+        self.rcon.close() # at worst, the rcon will re-open if something else requires it.
 
 
 async def setup(bot):
