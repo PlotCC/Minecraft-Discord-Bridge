@@ -5,13 +5,26 @@ import discord
 import pathlib
 import libtmux
 from discord.ext import commands
+from discord import app_commands
 
 import config
 
 path = pathlib.Path(__file__)
 BOT_SRC = str(path.parent.absolute())
 
+# Copy the last bot-latest.log to bot-old.log, if it exists.
+if os.path.isfile("bot-latest.log"):
+    if os.path.isfile("bot-old.log"):
+        os.remove("bot-old.log")
+    os.rename("bot-latest.log", "bot-old.log")
+
+
 logging.basicConfig(level=config.bot["logging_level"])
+handler = logging.FileHandler(filename="bot-latest.log", encoding="utf-8", mode="w")
+dt_fmt = '%Y-%m-%d %H:%M:%S'
+formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+handler.setFormatter(formatter)
+logging.getLogger().addHandler(handler)
 
 LOG = logging.getLogger("MAIN")
 
@@ -77,6 +90,22 @@ async def startup():
             LOG.exception(f"Failed to load Jishaku because: {e}")
         else:
             LOG.info("Successfully loaded Jishaku.")
+        
+        LOG.info("Setting up cog error handler...")
+        async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+            if isinstance(error, app_commands.CommandOnCooldown):
+                return await interaction.response.send_message(f"This command is on cooldown. Try again in {error.retry_after:.2f} seconds.", ephemeral=True)
+            elif isinstance(error, app_commands.MissingPermissions) or isinstance(error, app_commands.CheckFailure):
+                return await interaction.response.send_message("You do not have the required permissions to run this command.", ephemeral=True)
+            elif isinstance(error, app_commands.MissingRole):
+                return await interaction.response.send_message("You do not have the required role to run this command.", ephemeral=True)
+            elif isinstance(error, app_commands.CommandNotFound):
+                return await interaction.response.send_message("Command not found.", ephemeral=True)
+            else:
+                await interaction.response.send_message("An error occurred.", ephemeral=True)
+                raise error
+        
+        bot.tree.on_error = on_tree_error
 
         # Start the bot
         LOG.info("Starting bot.")

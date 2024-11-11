@@ -4,22 +4,22 @@ from discord import app_commands
 import datetime
 import logging
 import asyncio
-import re
 
+from rcon import Rcon
 import config
 from utilities.parse_tmux_pid import get_tmux_pid
 
 LOG = logging.getLogger("MC-SERVER")
 
+# Stop the server.
+async def stop_server(bot):
+    await bot.send_server_command("stop")
 
-def stop_server(bot):
-    bot.console_pane.send_keys("stop")
-
-
+# Start the server.
 def start_server(bot):
     bot.console_pane.reset()
-    bot.console_pane.send_keys("cd " + config.server["root"])
-    bot.console_pane.send_keys(config.programs["minecraft"])
+    bot.send_console_command("cd " + config.server["root"])
+    bot.send_console_command(config.programs["minecraft"])
 
 
 def get_server_process():
@@ -32,7 +32,7 @@ def get_server_process():
     # Get the java process.
     def descend(node):
         for child in node["children"]:
-            if child["process_name"] == "java" and child["arguments"].endswith("nogui"):
+            if child["process_name"].find("java"):
                 return child
             else:
                 return descend(child)
@@ -83,6 +83,7 @@ def get_time_after(time: datetime.time, seconds: int) -> datetime.time:
     return datetime.time(hour=hour, minute=minute, second=second, tzinfo=time.tzinfo)
 
 
+
 class ServerCog(commands.Cog):
     """
     This cog controls the minecraft server itself.
@@ -94,7 +95,6 @@ class ServerCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.session_message = None
-        self.notification_channel = None
         self.server_pid = None
         self.running = False
         self.stopping = False
@@ -105,10 +105,34 @@ class ServerCog(commands.Cog):
         self.skip_restart = 0
         self.restart_time = 0
         self.crash_count = 0
+        self.rcon = Rcon()
 
         # Start the autmatic tasks.
         self.automatic_stop_task.start()
         self.check_server_running.start()
+
+        # Function to send a command to the server console, to be used by cogs rather than invoking the console directly.
+        async def send_server_command(command: str):
+            """
+            Send a command to the console. This fails if the server is offline.
+            """
+            if not self.running:
+                raise Exception("Server is offline, cannot send command to server console.")
+            
+            # bot.console_pane.send_keys(command)
+            await self.rcon.send(command)
+        bot.send_server_command = send_server_command
+
+        # Function to send a command to the console, to be used by cogs rather than invoking the console directly.
+        def send_console_command(command: str):
+            """
+            Send a command to the console. This fails if the server is online.
+            """
+            if self.running:
+                raise Exception("Server is online, cannot send command to console.")
+            
+            bot.console_pane.send_keys(command)
+        bot.send_console_command = send_console_command
 
     @app_commands.command(
         name="shutdown", description="Shut down the Minecraft server."
@@ -117,7 +141,7 @@ class ServerCog(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def shutdown(self, interaction: discord.Interaction) -> None:
         if self.running:
-            stop_server(self.bot)
+            await stop_server(self.bot)
             self.stopping = True
             await interaction.response.send_message(
                 "Server is shutting down. Please give it a minute before attempting to start it again."
@@ -245,20 +269,6 @@ class ServerCog(commands.Cog):
             ephemeral=True,
         )
 
-    @app_commands.command(
-        name="list-players", description="Get the amount of players currently online."
-    )
-    async def get_online(self, interaction: discord.Interaction) -> None:
-        if self.running:
-            self.bot.console_pane.send_keys("list")
-            await interaction.response.send_message(
-                "Fetching player list...", delete_after=2
-            )
-        else:
-            await interaction.response.send_message(
-                "Server is offline!", ephemeral=True, delete_after=4
-            )
-
     @tasks.loop(seconds=1)
     async def automatic_restart_task(self):
         if self.cancel_restart:
@@ -278,7 +288,7 @@ class ServerCog(commands.Cog):
 
             if self.restart_time <= -1:
                 self.automatic_restart_task.stop()
-                stop_server(self.bot)
+                await stop_server(self.bot)
                 self.running = False
                 await asyncio.sleep(120)
                 if not self.running:
@@ -369,7 +379,7 @@ class ServerCog(commands.Cog):
                     if config.server["ping_role_in_bridge"]:
                         content = self.notification_ping
                     else:
-                        await self.notification_channel.send(
+                        await self.bot.notification_channel.send(
                             self.notification_ping
                             + " The server has crashed 5 times in a row and has been locked. Please investigate."
                         )
@@ -395,7 +405,7 @@ class ServerCog(commands.Cog):
                     if config.server["ping_role_in_bridge"]:
                         content = self.notification_ping
                     else:
-                        await self.notification_channel.send(
+                        await self.bot.notification_channel.send(
                             self.notification_ping
                             + " The server has crashed and is restarting."
                         )
@@ -422,7 +432,7 @@ class ServerCog(commands.Cog):
                     "    Not getting notification channel, ping_role_in_bridge is true. Ping will be appended to the message in the bridge channel."
                 )
             else:
-                self.notification_channel = self.bot.get_channel(
+                self.bot.notification_channel = self.bot.get_channel(
                     config.server["notification_channel_id"]
                 )
                 LOG.info("    Got notification channel.")
@@ -481,7 +491,7 @@ class ServerCog(commands.Cog):
             self.check_crash_loop.cancel() # This one doesn't need to safely exit.
 
         try:
-            await self.bot.bridge_channel.send(":warning: Server cog unloaded.")
+            await self.bot.notification_channel.send(":warning: Server cog unloaded.")
         except Exception as e:
             LOG.error(f"Failed to send cog unload notification: {e}")
 

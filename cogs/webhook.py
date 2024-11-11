@@ -57,6 +57,7 @@ class WebhookCog(commands.Cog):
         app_commands.Choice(name="console_message", value=9),
         app_commands.Choice(name="advancement", value=10),
         app_commands.Choice(name="list-actions", value=11),
+        app_commands.Choice(name="not_whitelisted", value=12),
     ])
     @app_commands.checks.has_permissions(administrator=True)
     async def actions(self, interaction: discord.Interaction, action: app_commands.Choice[int], enabled: typing.Optional[bool]=None) -> None:
@@ -85,6 +86,7 @@ class WebhookCog(commands.Cog):
                 webhook = discord.Webhook.from_url(config.webhook["url"], session=session)
                 LOG.info("Webhook connected.")
                 whb = Bridge(webhook)  # Create the webhook bridge object.
+                self.bot.bridge = whb  # Set the bot's bridge object to the one we just created.
 
                 LOG.info("Setting up regexes.")
 
@@ -232,8 +234,13 @@ class WebhookCog(commands.Cog):
 
         # Server list action
         async def server_list(match):
-            LOG.info("Server list sending...")
-            await whb.on_server_list(match.group(1), match.group(2), match.group(3))
+            self.bot.players_online = int(match.group(1))
+
+            if hasattr(self.bot, "list_command_triggered") and self.bot.list_command_triggered:
+                self.bot.list_command_triggered = False
+                LOG.info("Sending server list...")
+                await whb.on_server_list(match.group(1), match.group(2), match.group(3))
+                return
 
         insert_action(
             setup_action(
@@ -263,6 +270,18 @@ class WebhookCog(commands.Cog):
             setup_action(
                 advancement,
                 "Send advancement events to Discord.",
+            ),
+        )
+
+        # Non-whitelisted player attempted to join action
+        async def not_whitelisted(match):
+            LOG.info("Non-whitelisted player attempted to join, sending...")
+            await whb.on_player_not_whitelisted(match.group(1))
+
+        insert_action(
+            setup_action(
+                not_whitelisted,
+                "Send non-whitelisted player join events to Discord.",
             ),
         )
 
