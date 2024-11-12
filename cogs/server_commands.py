@@ -1,3 +1,4 @@
+from typing import Literal
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -74,6 +75,114 @@ class ServerCommandsCog(commands.Cog):
         self.rcon = Rcon()
         self.locked_out = False
         self.locked_out_reason = None
+
+    """
+        pregen stop : Stop ALL tasks
+        pregen stop [taskid] : Stop a specific task
+        pregen stop [taskid] true : Stop a specific task and delete the task
+
+        pregen clear : Delete all tasks
+        pregen clear [taskid] : Delete a specific task
+
+        pregen continue : Continue the first task in the queue
+        pregen continue [taskid] : Continue a specific task
+
+        pregen pause : Pause all tasks
+        pregen pause [taskid] : Pause a specific task
+
+        pregen resume : Resume all tasks
+        pregen resume [taskid] : Resume a specific task
+
+        pregen tasklist gen : List all generation tasks
+        pregen tasklist deletion : List all deletion tasks
+
+        Generation types: "NORMAL_GEN", "FAST_CHECK_GEN", "POST_GEN", "TERRAIN_ONLY", "BLOCK_POST", "RETROGEN"
+
+        pregen start gen radius <taskid> <shape> <centerX> <centerZ> <radius> [dimension] [generationtype] : Start a "radius" generation task
+        i.e: pregen start gen radius ExampleOverworld SQUARE 0 0 100 minecraft:overworld : 100 radius square generation (from 0,0) in the overworld
+
+        pregen start gen expansion <taskid> <shape> <centerX> <centerZ> <minradius> <maxradius> [dimension] [generationtype] : Expand already-generated terrain, starting from minradius, going to maxradius.
+        i.e: pregen start gen expansion ExampleOverworld SQUARE 0 0 100 200 minecraft:overworld : Expand from 100 to 200 radius square generation (from 0,0) in the overworld
+
+        pregen start gen worldborder <taskid> <dimension> <generationtype> : Generate terrain up to the world-border.
+        i.e: pregen start gen worldborder ExampleOverworld minecraft:overworld : Generate terrain up to the world-border in the overworld
+    """
+    @app_commands.command(name="pregen", description="Pregenerate chunks, requires the \"Chunk-Pregenerator\" mod to be installed on the server.")
+    @app_commands.describe(
+        base_cmd="The base command to run.",
+        task_id="The task ID to operate on.",
+        shape="The shape of the area to generate.",
+        center_x="The center x-coordinate of the area to generate.",
+        center_z="The center z-coordinate of the area to generate.",
+        radius="The radius of the area to generate.",
+        maxradius="The maximum radius of the area to generate. If provided, will use `radius` as the minimum radius.",
+        dimension="The dimension to generate in. Defaults to the overworld.",
+        generation_type="The type of generation to perform. Defaults to `FAST_CHECK_GEN`.",
+    )
+    @app_commands.check(is_owner)
+    async def pregen(
+        self,
+        interaction: discord.Interaction,
+        task_id: str,
+        center_x: int,
+        center_z: int,
+        radius: int,
+        shape: Literal["SQUARE", "CIRCLE"] = "SQUARE",
+        maxradius: int = None,
+        dimension: str = "minecraft:overworld",
+        generation_type: Literal["NORMAL_GEN", "FAST_CHECK_GEN", "POST_GEN", "TERRAIN_ONLY", "BLOCK_POST", "RETROGEN"] = "FAST_CHECK_GEN",
+    ) -> None:
+        """
+        Pregenerate chunks.
+        """
+
+        try:
+            await interaction.response.defer(thinking=True)
+            response = None
+
+            if maxradius is None:
+                response, id = await self.rcon.send(f"pregen start gen radius {task_id} {shape} {center_x} {center_z} {radius} {dimension} {generation_type}")
+            else:
+                response, id = await self.rcon.send(f"pregen start gen expansion {task_id} {shape} {center_x} {center_z} {radius} {maxradius} {dimension} {generation_type}")
+
+            await interaction.followup.send(content=response)
+
+        except Exception as e:
+            if interaction.response.is_done():
+                await interaction.followup.send(content=f"Failed to pregenerate chunks: {e}")
+            else:
+                await interaction.response.send_message(f"Failed to pregenerate chunks: {e}", ephemeral=True)
+
+
+
+    @app_commands.command(name="pregen_worldborder", description="Pregenerate chunks up to the world border, requires the \"Chunk-Pregenerator\" mod to be installed on the server.")
+    @app_commands.describe(
+        task_id="The task ID to operate on.",
+        dimension="The dimension to generate in. Defaults to the overworld.",
+        generation_type="The type of generation to perform. Defaults to `FAST_CHECK_GEN`.",
+    )
+    @app_commands.check(is_owner)
+    async def pregen_worldborder(
+        self,
+        interaction: discord.Interaction,
+        task_id: str,
+        dimension: str = "minecraft:overworld",
+        generation_type: Literal["NORMAL_GEN", "FAST_CHECK_GEN", "POST_GEN", "TERRAIN_ONLY", "BLOCK_POST", "RETROGEN"] = "FAST_CHECK_GEN",
+    ) -> None:
+        """
+        Pregenerate chunks up to the world border.
+        """
+
+        try:
+            await interaction.response.defer(thinking=True)
+            response, id = await self.rcon.send(f"pregen start gen worldborder {task_id} {dimension} {generation_type}")
+            await interaction.followup.send(content=response)
+
+        except Exception as e:
+            if interaction.response.is_done():
+                await interaction.followup.send(content=f"Failed to pregenerate chunks: {e}")
+            else:
+                await interaction.response.send_message(f"Failed to pregenerate chunks: {e}", ephemeral=True)
 
     
 
