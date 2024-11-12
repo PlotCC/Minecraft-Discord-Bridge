@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 import logging
 from random import randint
+import re
 
 from traceback import format_exc
 
@@ -71,6 +72,84 @@ class ServerCommandsCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.rcon = Rcon()
+        self.locked_out = False
+        self.locked_out_reason = None
+
+    
+
+    @app_commands.command(name="lockout", description="Lockout the server (clears the whitelist and activates it, and disables the whitelist command).")
+    @app_commands.describe(
+        reason="The reason for the lockout."
+    )
+    @app_commands.check(is_owner)
+    async def lockout(self, interaction: discord.Interaction, reason: str) -> None:
+        """
+        Lockout the server.
+        """
+        try:
+            await interaction.response.defer(thinking=True)
+
+            await self.rcon.send("whitelist on")
+            response, id = await self.rcon.send("whitelist list")
+
+            if response.startswith("There are no whitelisted players"):
+                self.locked_out = True
+                self.locked_out_reason = reason
+                await interaction.followup.send("Server has been locked out.")
+                return
+
+            # Regex grab the usernames from the response.
+            # "There are 3 whitelisted players: player1, player2, player3"
+            # becomes ["player1", "player2", "player3"]
+            players = re.match(r"There are \d+ whitelisted players: (.+)", response).group(1).split(", ")
+
+            for player in players:
+                response, id = await self.rcon.send(f"whitelist remove {player}")
+            
+            await interaction.followup.send("Server has been locked out.")
+            self.locked_out = True
+            self.locked_out_reason = reason
+
+        except Exception as e:
+            if interaction.response.is_done():
+                await interaction.followup.send(content=f"Failed to lockout the server: {e}")
+            else:
+                await interaction.response.send_message(f"Failed to lockout the server: {e}", ephemeral=True)
+
+
+
+    @app_commands.command(name="cancel_lockout", description="Unlock the server (Re-enable the whitelist command, and optionally disable the whitelist).")
+    @app_commands.describe(
+        disable_whitelist="Disable the whitelist after unlocking."
+    )
+    @app_commands.check(is_owner)
+    async def cancel_lockout(self, interaction: discord.Interaction, disable_whitelist: bool = False) -> None:
+        """
+        Unlock the server.
+        """
+        try:
+            await interaction.response.defer(thinking=True)
+            disabled_whitelist = False
+
+            if disable_whitelist:
+                response, id = await self.rcon.send("whitelist off")
+                if response.endswith("turned off"):
+                    disabled_whitelist = True
+            
+            self.locked_out = False
+            self.locked_out_reason = None
+
+            if disabled_whitelist:
+                await interaction.followup.send(content="Server unlocked, whitelist disabled.")
+            else:
+                await interaction.followup.send(content="Server unlocked.")
+
+        except Exception as e:
+            if interaction.response.is_done():
+                await interaction.followup.send(content=f"Failed to unlock the server: {e}")
+            else:
+                await interaction.response.send_message(f"Failed to unlock the server: {e}", ephemeral=True)
+                    
 
 
 
@@ -83,6 +162,10 @@ class ServerCommandsCog(commands.Cog):
         Add a player to the whitelist.
         """
 
+        if self.locked_out:
+            await interaction.response.send_message(f"Server is locked out: {self.locked_out_reason}")
+            return
+
         # Some small validation: Ensure the text is alphanumeric or underscore.
         if not username.replace("_", "").isalnum():
             await interaction.response.send_message("Player name must be alphanumeric, but may include underscores.", ephemeral=True)
@@ -93,7 +176,7 @@ class ServerCommandsCog(commands.Cog):
             # await interaction.response.send_message(f"Whitelisted player: {player}", delete_after=5.0)
             await interaction.response.send_message(str(response)) # Temporary
         except Exception as e:
-            await interaction.response.send_message(f"Failed to whitelist player: {e}", ephemeral=True)
+            await interaction.response.send_message(f"Failed to whitelist player: {e}")
 
 
 
