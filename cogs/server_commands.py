@@ -109,7 +109,6 @@ class ServerCommandsCog(commands.Cog):
     """
     @app_commands.command(name="pregen", description="Pregenerate chunks, requires the \"Chunk-Pregenerator\" mod to be installed on the server.")
     @app_commands.describe(
-        base_cmd="The base command to run.",
         task_id="The task ID to operate on.",
         shape="The shape of the area to generate.",
         center_x="The center x-coordinate of the area to generate.",
