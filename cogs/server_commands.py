@@ -154,7 +154,7 @@ class ServerCommandsCog(commands.Cog):
 
 
 
-    @app_commands.command(name="pregen_worldborder", description="Pregenerate chunks up to the world border, requires the \"Chunk-Pregenerator\" mod to be installed on the server.")
+    @app_commands.command(name="pregen_worldborder", description="Pregenerate chunks up to the world border, requires the \"Chunk-Pregenerator\" mod.")
     @app_commands.describe(
         task_id="The task ID to operate on.",
         dimension="The dimension to generate in. Defaults to the overworld.",
