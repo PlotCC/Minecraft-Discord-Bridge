@@ -46,7 +46,7 @@ async def startup():
 
     try:
         # Create a new session. This throws if a session exists already!
-        session = Server.new_session(config.tmux_data["tmux_session"])
+        session = Server.new_session(config.tmux_data["tmux_session"], attach=False)
     except:
         LOG.info("tmux session already exists. Joining to it instead.")
         for _session in Server.sessions:
