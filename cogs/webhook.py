@@ -12,7 +12,7 @@ from discord_bot import DiscordBot
 from webhook_bridge import Bridge
 from webhook_actions import open_latest_log, need_log_reopen, regex_action, multi_regex_action, action_list
 import config
-import privelege_level
+import privelege_test
 
 LOG = logging.getLogger("WEBHOOK_COG")
 
@@ -71,7 +71,7 @@ class WebhookCog(commands.Cog):
         app_commands.Choice(name="not_whitelisted", value=12),
     ])
     async def actions(self, interaction: discord.Interaction, action: app_commands.Choice[int], enabled: typing.Optional[bool]=None) -> None:
-        if not privelege_level.test(interaction, config.priveleges.admin):
+        if not privelege_test.test(interaction, config.priveleges.admin):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
         
@@ -99,7 +99,7 @@ class WebhookCog(commands.Cog):
         description="Force the webhook to reopen the latest.log file.",
     )
     async def reset_log(self, interaction: discord.Interaction) -> None:
-        if not privelege_level.test(interaction, config.priveleges.moderator):
+        if not privelege_test.test(interaction, config.priveleges.moderator):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
         

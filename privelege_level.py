@@ -1,6 +1,4 @@
 from enum import Enum
-import discord
-from config import priveleges
 
 class PrivelegeLevel(Enum):
     BANNED = 0
@@ -37,13 +35,3 @@ class PrivelegeLevel(Enum):
         elif isinstance(other, int):
             return self.value >= other
         return NotImplemented
-
-
-
-def test(interaction: discord.Interaction|discord.Message, level: PrivelegeLevel) -> bool:
-    """
-    Check if the user has the required privelege level.
-    """
-    user_id = interaction.user.id if isinstance(interaction, discord.Interaction) else interaction.author.id
-    user_level = priveleges.users.get(user_id, priveleges.user)
-    return user_level >= level

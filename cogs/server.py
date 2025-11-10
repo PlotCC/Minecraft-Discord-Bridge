@@ -9,7 +9,7 @@ from discord_bot import DiscordBot
 from rcon import Rcon
 import config
 from utilities.parse_tmux_pid import get_tmux_pid
-import privelege_level
+import privelege_test
 
 LOG = logging.getLogger("MC-SERVER")
 
@@ -125,7 +125,7 @@ class ServerCog(commands.Cog):
         name="shutdown", description="Shut down the Minecraft server."
     )
     async def shutdown(self, interaction: discord.Interaction) -> None:
-        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -146,7 +146,7 @@ class ServerCog(commands.Cog):
 
     @app_commands.command(name="startup", description="Start up the Minecraft server.")
     async def startup(self, interaction: discord.Interaction) -> None:
-        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -175,7 +175,7 @@ class ServerCog(commands.Cog):
         name="cancel-restart", description="Cancel the current restart timer."
     )
     async def cancel_restart_cmd(self, interaction: discord.Interaction) -> None:
-        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -202,7 +202,7 @@ class ServerCog(commands.Cog):
     async def skip_restart_cmd(
         self, interaction: discord.Interaction, count: int = 1
     ) -> None:
-        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -223,7 +223,7 @@ class ServerCog(commands.Cog):
     async def queue_restart(
         self, interaction: discord.Interaction, time: int = 3601
     ) -> None:
-        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -246,7 +246,7 @@ class ServerCog(commands.Cog):
         description="Forcibly kill the Minecraft server process.",
     )
     async def kill_server(self, interaction: discord.Interaction) -> None:
-        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
         
@@ -268,7 +268,7 @@ class ServerCog(commands.Cog):
     )
     @app_commands.describe(online="The server state.")
     async def set_state(self, interaction: discord.Interaction, online: bool) -> None:
-        if not privelege_level.test(interaction, config.priveleges.owner):
+        if not privelege_test.test(interaction, config.priveleges.owner):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -288,7 +288,7 @@ class ServerCog(commands.Cog):
         description="Unlock the server startup after being stuck in a crash loop.",
     )
     async def unlock(self, interaction: discord.Interaction) -> None:
-        if not privelege_level.test(interaction, config.priveleges.admin):
+        if not privelege_test.test(interaction, config.priveleges.admin):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -305,7 +305,7 @@ class ServerCog(commands.Cog):
         description="Display the automatic restart schedule of the Minecraft server.",
     )
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
-        if not privelege_level.test(interaction, config.priveleges.user):
+        if not privelege_test.test(interaction, config.priveleges.user):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 

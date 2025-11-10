@@ -4,3 +4,4 @@ aiohttp
 emoji
 libtmux
 aio-mc-rcon
+tzdata

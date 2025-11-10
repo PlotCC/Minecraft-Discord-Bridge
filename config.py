@@ -2,7 +2,7 @@ import datetime
 import logging
 from zoneinfo import ZoneInfo
 from privelege_level import PrivelegeLevel
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -52,10 +52,11 @@ class Priveleges:
     backup_privelege: PrivelegeLevel = PrivelegeLevel.MODERATOR
 
     # Map of user IDs to their privelege levels.
-    users: dict[int, PrivelegeLevel] = {
-        # UserID: PrivelegeLevel
-        bot.owner_id: PrivelegeLevel.OWNER,
-    }
+    users: dict[int, PrivelegeLevel] = field(
+        default_factory=lambda: {
+            bot.owner_id: PrivelegeLevel.OWNER
+        }
+    )
 priveleges = Priveleges()
 
 
@@ -131,57 +132,61 @@ class Webhook:
 
     # Regexes that the webhook checks for in the log file in order to send
     # messages to Discord.
-    regex: dict[str, str] = {
-        # Should return two match groups -- playername and message.
-        "player_message_noreply": "",
+    regex: dict[str, str] = field(
+        default_factory=lambda: {
+            # Should return two match groups -- playername and message.
+            "player_message_noreply": "",
 
-        # Should return four match groups -- message ID to reply to, 'pingon'/'pingoff', playername and message.
-        # Do note, the server inserts automatically the phrase 'reply:ID:pingoff' or 'reply:ID:pingon' to the start of the message if insertion is enabled.
-        "player_message_reply": "",
+            # Should return four match groups -- message ID to reply to, 'pingon'/'pingoff', playername and message.
+            # Do note, the server inserts automatically the phrase 'reply:ID:pingoff' or 'reply:ID:pingon' to the start of the message if insertion is enabled.
+            "player_message_reply": "",
 
-        # Should return a single match group -- playername.
-        "player_joined": "",
+            # Should return a single match group -- playername.
+            "player_joined": "",
 
-        # Should return a single match group -- playername.
-        "player_left": "",
+            # Should return a single match group -- playername.
+            "player_left": "",
 
-        # No groups required.
-        "server_starting": "",
+            # No groups required.
+            "server_starting": "",
 
-        # No groups required.
-        "server_started": "",
+            # No groups required.
+            "server_started": "",
 
-        # No groups required.
-        "server_stopping": "",
+            # No groups required.
+            "server_stopping": "",
 
-        # Should return three match groups -- current players, max players, playerlist.
-        "server_list": "",
+            # Should return three match groups -- current players, max players, playerlist.
+            "server_list": "",
 
-        # Should return a single match group -- message
-        "console_message": "",
+            # Should return a single match group -- message
+            "console_message": "",
 
-        # Should return two match groups -- playername and advancement.
-        "advancement": "",
+            # Should return two match groups -- playername and advancement.
+            "advancement": "",
 
-        # Player attempted to join and is not whitelisted -- playername.
-        "not_whitelisted": "",
-    }
+            # Player attempted to join and is not whitelisted -- playername.
+            "not_whitelisted": "",
+        }
+    )
 
     # The webhook actions that are enabled and searched for in the logs.
     # If set to false, the event will not be sent to Discord.
-    actions_enabled: dict[str, bool] = {
-        "player_message_noreply": True,
-        "player_message_reply": True,
-        "player_joined": True,
-        "player_left": True,
-        "server_starting": True,
-        "server_started": True,
-        "server_stopping": True,
-        "server_list": True,
-        "console_message": True,
-        "advancement": True,
-        "not_whitelisted": True,
-    }
+    actions_enabled: dict[str, bool] = field(
+        default_factory=lambda: {
+            "player_message_noreply": True,
+            "player_message_reply": True,
+            "player_joined": True,
+            "player_left": True,
+            "server_starting": True,
+            "server_started": True,
+            "server_stopping": True,
+            "server_list": True,
+            "console_message": True,
+            "advancement": True,
+            "not_whitelisted": True,
+        }
+    )
 
     # The name of the server, displayed when events like shutdowns or player joins occur.
     server_name: str = "Minecraft Server"

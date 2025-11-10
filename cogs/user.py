@@ -5,7 +5,7 @@ import logging
 import asyncio
 
 import config
-import privelege_level
+import privelege_test
 
 LOG = logging.getLogger("BACKUP")
 
@@ -29,7 +29,7 @@ class UserCog(commands.Cog):
         """
         Get information about yourself.
         """
-        if not privelege_level.test(interaction, config.priveleges.user):
+        if not privelege_test.test(interaction, config.priveleges.user):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 

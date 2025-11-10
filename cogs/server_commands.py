@@ -11,7 +11,7 @@ from traceback import format_exc
 import config
 from discord_bot import DiscordBot
 from rcon import Rcon
-import privelege_level
+import privelege_test
 
 LOG = logging.getLogger("SERVER-COMMANDS")
 
@@ -96,7 +96,7 @@ class ServerCommandsCog(commands.Cog):
         """
         Lockout the server.
         """
-        if not privelege_level.test(interaction, config.priveleges.owner):
+        if not privelege_test.test(interaction, config.priveleges.owner):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -144,7 +144,7 @@ class ServerCommandsCog(commands.Cog):
         """
         Unlock the server.
         """
-        if not privelege_level.test(interaction, config.priveleges.owner):
+        if not privelege_test.test(interaction, config.priveleges.owner):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -181,7 +181,7 @@ class ServerCommandsCog(commands.Cog):
         """
         Add a player to the whitelist.
         """
-        if not privelege_level.test(interaction, config.priveleges.user):
+        if not privelege_test.test(interaction, config.priveleges.user):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -207,7 +207,7 @@ class ServerCommandsCog(commands.Cog):
         name="list", description="Get a list of players that are currently online."
     )
     async def list(self, interaction: discord.Interaction) -> None:
-        if not privelege_level.test(interaction, config.priveleges.user):
+        if not privelege_test.test(interaction, config.priveleges.user):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -224,7 +224,7 @@ class ServerCommandsCog(commands.Cog):
         """
         Run a custom command.
         """
-        if not privelege_level.test(interaction, config.priveleges.admin):
+        if not privelege_test.test(interaction, config.priveleges.admin):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -245,7 +245,7 @@ class ServerCommandsCog(commands.Cog):
             if message.content.strip() == "":
                 return
             if message.content.startswith(config.rcon.command_prefix):
-                if not privelege_level.test(message, config.priveleges.rcon_command_privelege):
+                if not privelege_test.test(message, config.priveleges.rcon_command_privelege):
                     denial_message = get_denial_message()
                     await message.reply(denial_message)
                     return
@@ -263,7 +263,7 @@ class ServerCommandsCog(commands.Cog):
                 except Exception as e:
                     await message.reply(f"Failed to send command to server: {e}")
             elif message.content.startswith(config.rcon.meta_command_prefix):
-                if not privelege_level.test(message, config.priveleges.rcon_meta_command_privelege):
+                if not privelege_test.test(message, config.priveleges.rcon_meta_command_privelege):
                     denial_message = get_denial_message()
                     await message.reply(denial_message)
                     return

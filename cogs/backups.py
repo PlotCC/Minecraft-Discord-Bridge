@@ -10,7 +10,7 @@ from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
 import config
 from discord_bot import DiscordBot
-import privelege_level
+import privelege_test
 
 LOG = logging.getLogger("BACKUP")
 
@@ -337,7 +337,7 @@ class BackupsCog(commands.Cog):
         """
         await interaction.response.defer(thinking=True)
 
-        if not privelege_level.test(interaction, config.priveleges.backup_privelege):
+        if not privelege_test.test(interaction, config.priveleges.backup_privelege):
             await interaction.followup.send("You do not have permission to use this command.")
             return
 
@@ -369,7 +369,7 @@ class BackupsCog(commands.Cog):
         """
         await interaction.response.defer(thinking=True)
 
-        if not privelege_level.test(interaction, config.priveleges.backup_privelege):
+        if not privelege_test.test(interaction, config.priveleges.backup_privelege):
             await interaction.followup.send("You do not have permission to use this command.")
             return
 
@@ -414,7 +414,7 @@ class BackupsCog(commands.Cog):
         Stop automatic backups.
         """
 
-        if not privelege_level.test(interaction, config.priveleges.backup_privelege):
+        if not privelege_test.test(interaction, config.priveleges.backup_privelege):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -433,7 +433,7 @@ class BackupsCog(commands.Cog):
         Start automatic backups.
         """
 
-        if not privelege_level.test(interaction, config.priveleges.backup_privelege):
+        if not privelege_test.test(interaction, config.priveleges.backup_privelege):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
@@ -451,7 +451,7 @@ class BackupsCog(commands.Cog):
         Clean up the backup directory.
         """
 
-        if not privelege_level.test(interaction, config.priveleges.backup_privelege):
+        if not privelege_test.test(interaction, config.priveleges.backup_privelege):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 

@@ -5,7 +5,7 @@ import logging
 
 import config
 from discord_bot import DiscordBot
-import privelege_level
+import privelege_test
 
 LOG = logging.getLogger("SYNC")
 
@@ -23,7 +23,7 @@ class SyncCog(commands.Cog):
         Properly re-synchronize the command tree, deleting old commands as well.
         """
 
-        if not privelege_level.test(interaction, config.priveleges.owner):
+        if not privelege_test.test(interaction, config.priveleges.owner):
             await interaction.response.send_message("You do not have permission to use this command.")
             return
 
