@@ -8,37 +8,48 @@ import aiohttp
 import logging
 import typing
 
+from discord_bot import DiscordBot
 from webhook_bridge import Bridge
 from webhook_actions import open_latest_log, need_log_reopen, regex_action, multi_regex_action, action_list
 import config
+import privelege_level
 
 LOG = logging.getLogger("WEBHOOK_COG")
 
-emoji_match = "<a?(:.*?:)\d*?>"
+emoji_match = r"<a?(:.*?:)\d*?>"
 def parse_emoji(content):
-    return emoji.demojize(re.sub(emoji_match, "\1", content))
+    return emoji.demojize(re.sub(emoji_match, r"\1", content))
+
+
 
 def setup_action(callback, what_do: str):
     LOG.debug(f"  Event: '{callback.__name__}'")
     LOG.debug(f"    Action: {what_do}")
-    LOG.debug(f"    Enabled: {config.webhook['actions_enabled'][callback.__name__]}")
-    LOG.debug(f"    Regex: {config.webhook['regex'][callback.__name__]}")
+    LOG.debug(f"    Enabled: {config.webhook.actions_enabled[callback.__name__]}")
+    LOG.debug(f"    Regex: {config.webhook.regex[callback.__name__]}")
 
-    return regex_action(config.webhook["regex"][callback.__name__], callback)
+    return regex_action(config.webhook.regex[callback.__name__], callback)
+
+
 
 def setup_multi_action(callbacks, what_do: str):
     LOG.debug(f"  Multi-event:")
     LOG.debug(f"    Action: {what_do}")
     for callback in callbacks:
         LOG.debug(f"    Event: '{callback.__name__}'")
-        LOG.debug(f"      Regex: {config.webhook['regex'][callback.__name__]}")
-        LOG.debug(f"      Enabled: {config.webhook['actions_enabled'][callback.__name__]}")
+        LOG.debug(f"      Regex: {config.webhook.regex[callback.__name__]}")
+        LOG.debug(f"      Enabled: {config.webhook.actions_enabled[callback.__name__]}")
 
-    return multi_regex_action([config.webhook["regex"][callback.__name__] for callback in callbacks], callbacks)
+    return multi_regex_action([config.webhook.regex[callback.__name__] for callback in callbacks], callbacks)
+
+
 
 class WebhookCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: DiscordBot):
         self.bot = bot
+        self.f = None
+
+
 
     @app_commands.command(
         name="actions",
@@ -59,8 +70,11 @@ class WebhookCog(commands.Cog):
         app_commands.Choice(name="list-actions", value=11),
         app_commands.Choice(name="not_whitelisted", value=12),
     ])
-    @app_commands.checks.has_permissions(administrator=True)
     async def actions(self, interaction: discord.Interaction, action: app_commands.Choice[int], enabled: typing.Optional[bool]=None) -> None:
+        if not privelege_level.test(interaction, config.priveleges.admin):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+        
         LOG.info(f"Action [{action.name} ({action.value}) -> {enabled}] requested by {interaction.user.name}#{interaction.user.discriminator}.")
         if action.value == 10:
             await interaction.response.send_message("```" + "\n".join([_action.name for _action in self.action_list.all_actions]) + "```")
@@ -78,12 +92,28 @@ class WebhookCog(commands.Cog):
             self.action_list.disable_action(action.name)
         await interaction.response.send_message(f"Action {action.name} is now {'enabled' if enabled else 'disabled'}.")
 
+
+
+    @app_commands.command(
+        name="reset_log",
+        description="Force the webhook to reopen the latest.log file.",
+    )
+    async def reset_log(self, interaction: discord.Interaction) -> None:
+        if not privelege_level.test(interaction, config.priveleges.moderator):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+        
+        self.f = open_latest_log()
+        await interaction.response.send_message("Reopened latest.log file.")
+
+
+
     # Task that runs forever (only started once) that runs main from webhook.py
     async def run_webhook(self):
         try: # Wrap everything in a try since the error isn't propagated properly.
             async with aiohttp.ClientSession() as session:
                 LOG.info("Connecting to webhook...")
-                webhook = discord.Webhook.from_url(config.webhook["url"], session=session)
+                webhook = discord.Webhook.from_url(config.webhook.url, session=session)
                 LOG.info("Webhook connected.")
                 whb = Bridge(webhook)  # Create the webhook bridge object.
                 self.bot.bridge = whb  # Set the bot's bridge object to the one we just created.
@@ -96,13 +126,13 @@ class WebhookCog(commands.Cog):
 
                 LOG.info("Done action setup.")
 
-                f = open_latest_log()
-                f.seek(0, 2)
+                self.f = open_latest_log()
+                self.f.seek(0, 2)
 
                 # Main loop: Grab a line of the file, check if it matches any patterns. If so, run the action.
-                LOG.info(f"Listening to log file {config.webhook['latest_log_location']}.")
+                LOG.info(f"Listening to log file {config.webhook.latest_log_location}.")
                 while True:
-                    line = f.readline()
+                    line = self.f.readline()
                     if line:
                         if line != "" and line != "\n":
                             match = self.action_list.check(line)
@@ -112,10 +142,10 @@ class WebhookCog(commands.Cog):
                             LOG.info("Ignored empty newline.")
                         elif line == "":
                             if need_log_reopen():
-                                f = open_latest_log()
+                                self.f = open_latest_log()
                     else:
                         if need_log_reopen():
-                            f = open_latest_log()
+                            self.f = open_latest_log()
 
                     # Delay between checking each line. I assume 100 lines per second is more than enough?
                     # A better delay system will be set up soon, this is mostly temporary.
@@ -123,19 +153,27 @@ class WebhookCog(commands.Cog):
         except Exception as e:
             LOG.error("Webhook task failed!")
             LOG.exception(e)
-    
+
+
+
     def setup_actions(self, whb: Bridge):
         # Initial step: Add all actions to the list.
         list = []
 
+
+
         def insert_action(action: regex_action):
             list.insert(0, action)
+
+
 
         # Player chatted action
         async def player_message_noreply(match):
             LOG.info("Player message (no reply), sending...")
             await whb.on_player_message_noreply(match.group(1), match.group(2))
-        
+
+
+
         async def player_message_reply(match):
             LOG.info("Player message (with reply), getting message from ID...")
             # match group 1 is the player name
@@ -152,7 +190,7 @@ class WebhookCog(commands.Cog):
             author = None
             ping_str = None
             try:
-                message_d = await self.bot.bridge_channel.fetch_message(int(message_id))
+                message_d = await self.bot.channels.bridge.fetch_message(int(message_id))
                 author = message_d.author.display_name
                 reply_message = message_d.content
                 ping_str = f"<@{message_d.author.id}> " if ping_status == "pingon" else ""
@@ -165,6 +203,8 @@ class WebhookCog(commands.Cog):
 
             await whb.on_player_message_reply(name, ping_str + message, author, reply_message)
 
+
+
         insert_action(
             setup_multi_action(
                 [player_message_reply, player_message_noreply],
@@ -172,10 +212,14 @@ class WebhookCog(commands.Cog):
             ),
         )
 
+
+
         # Player join action
         async def player_joined(match):
             LOG.info("Player joined, sending...")
             await whb.on_player_join(match.group(1))
+
+
 
         insert_action(
             setup_action(
@@ -184,10 +228,14 @@ class WebhookCog(commands.Cog):
             ),
         )
 
+
+
         # Player leave action
         async def player_left(match):
             LOG.info("Player left, sending...")
             await whb.on_player_leave(match.group(1))
+
+
 
         insert_action(
             setup_action(
@@ -196,10 +244,14 @@ class WebhookCog(commands.Cog):
             ),
         )
 
+
+
         # Server starting action
         async def server_starting(match):
             LOG.info("Server starting, sending...")
             await whb.on_server_starting()
+
+
 
         insert_action(
             setup_action(
@@ -208,10 +260,14 @@ class WebhookCog(commands.Cog):
             ),
         )
 
+
+
         # Server started action
         async def server_started(match):
             LOG.info("Server started, sending...")
             await whb.on_server_started()
+
+
 
         insert_action(
             setup_action(
@@ -220,10 +276,14 @@ class WebhookCog(commands.Cog):
             ),
         )
 
+
+
         # Server stopping action
         async def server_stopping(match):
             LOG.info("Server stopping, sending...")
             await whb.on_server_stopping()
+
+
 
         insert_action(
             setup_action(
@@ -232,15 +292,13 @@ class WebhookCog(commands.Cog):
             ),
         )
 
+
+
         # Server list action
         async def server_list(match):
             self.bot.players_online = int(match.group(1))
 
-            if hasattr(self.bot, "list_command_triggered") and self.bot.list_command_triggered:
-                self.bot.list_command_triggered = False
-                LOG.info("Sending server list...")
-                await whb.on_server_list(match.group(1), match.group(2), match.group(3))
-                return
+
 
         insert_action(
             setup_action(
@@ -249,10 +307,14 @@ class WebhookCog(commands.Cog):
             ),
         )
 
+
+
         # Console message action
         async def console_message(match):
             LOG.info("Console message sending...")
             await whb.on_console_message(match.group(1))
+
+
 
         insert_action(
             setup_action(
@@ -261,10 +323,14 @@ class WebhookCog(commands.Cog):
             ),
         )
 
+
+
         # Advancement action
         async def advancement(match):
             LOG.info("Advancement sending...")
             await whb.on_advancement(match.group(1), match.group(2))
+
+
 
         insert_action(
             setup_action(
@@ -273,10 +339,14 @@ class WebhookCog(commands.Cog):
             ),
         )
 
+
+
         # Non-whitelisted player attempted to join action
         async def not_whitelisted(match):
             LOG.info("Non-whitelisted player attempted to join, sending...")
             await whb.on_player_not_whitelisted(match.group(1))
+
+
 
         insert_action(
             setup_action(
@@ -285,12 +355,14 @@ class WebhookCog(commands.Cog):
             ),
         )
 
+
+
         # Second step: Create the actions object.
         actions = action_list(list)
 
         # Third step: Enable or disable actions based on the config.
-        for action_name in config.webhook["actions_enabled"]:
-            if config.webhook["actions_enabled"][action_name]:
+        for action_name in config.webhook.actions_enabled:
+            if config.webhook.actions_enabled[action_name]:
                 actions.enable_action(action_name)
                 LOG.info(f"  Action '{action_name}' enabled.")
             else:
@@ -298,18 +370,25 @@ class WebhookCog(commands.Cog):
                 LOG.info(f"  Action '{action_name}' disabled.")
 
         return actions
-    
+
+
+
     @commands.Cog.listener()
     async def on_ready(self):
-        None
+        pass
+
+
 
     async def cog_load(self):
         # Start the webhook task
         self.webhook_task = self.bot.loop.create_task(self.run_webhook())
 
+
+
     async def cog_unload(self):
         self.webhook_task.cancel()
-        
 
-async def setup(bot: discord.ext.commands.Bot):
+
+
+async def setup(bot: DiscordBot):
     await bot.add_cog(WebhookCog(bot))

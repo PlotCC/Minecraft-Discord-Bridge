@@ -4,32 +4,34 @@ from discord import app_commands
 import logging
 
 import config
+from discord_bot import DiscordBot
+import privelege_level
 
 LOG = logging.getLogger("SYNC")
-
-def is_owner(interaction: discord.Interaction) -> bool:
-    return interaction.user.id == config.bot["owner_id"]
 
 
 
 class SyncCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: DiscordBot):
         self.bot = bot
 
 
 
     @app_commands.command(name="resync", description="Properly re-synchronize the command tree, deleting old commands as well.")
-    @app_commands.check(is_owner)
     async def resync(self, interaction: discord.Interaction) -> None:
         """
         Properly re-synchronize the command tree, deleting old commands as well.
         """
 
+        if not privelege_level.test(interaction, config.priveleges.owner):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+
         LOG.info("Resyncing command tree...")
 
         # Delete all commands.
         for command in self.bot.walk_commands():
-            try: await command.delete()
+            try: await command.delete() # type: ignore dont care didnt ask
             except: pass
         
         # Re-register all commands.

@@ -12,12 +12,16 @@ class Bridge:
         self.webhook = webhook
         self.username_cache = dict()
 
+
+
     # Send a message from the console.
-    async def __send_console_message(self, message, embed=None):
-        await self.webhook.send(content=message, embed=embed, username="Console", avatar_url=config.icons["console"])
+    async def __send_console_message(self, message, embed: discord.Embed|None=None):
+        await self.webhook.send(content=message, embed=embed, username="Console", avatar_url=config.icons.console) # type: ignore[reportArgumentType] Embed can be None.
+
+
 
     # Send a message which is "from" a player.
-    async def __send_player_message(self, username:str, message="", embed=None):
+    async def __send_player_message(self, username:str, message="", embed: discord.Embed|None=None):
         avatar_url = None
 
         # If we haven't already cached their avatar icon, grab the icon.
@@ -25,12 +29,12 @@ class Bridge:
             # get the UUID of the player
             LOG.info(f"Attempt to cache username: {username}")
             async with aiohttp.ClientSession() as session:
-                async with session.get(config.icons["uuid_lookup_url"] + username) as response:
+                async with session.get(config.icons.uuid_lookup_url + username) as response:
                     if response.status == 200:
                         uuid_json = await response.json()
                         LOG.info(f"200. UUID: {uuid_json['id']}")
-                        LOG.info(f"Avatar url: {config.icons['avatar_lookup_url'] + uuid_json['id']}" + ".png?size=128&default=MHF_Steve")
-                        self.username_cache[username] = config.icons["avatar_lookup_url"] + uuid_json["id"] + ".png?size=128&default=MHF_Steve"
+                        LOG.info(f"Avatar url: {config.icons.avatar_lookup_url + uuid_json['id']}" + ".png?size=128&default=MHF_Steve")
+                        self.username_cache[username] = config.icons.avatar_lookup_url + uuid_json["id"] + ".png?size=128&default=MHF_Steve"
                         avatar_url = self.username_cache[username]
                     else:
                         LOG.warn(f"Failed to cache username: {username}")
@@ -40,21 +44,29 @@ class Bridge:
 
         # If it is not cached and fails to get the avatar url, it will just pass an empty url to it.
 
-        await self.webhook.send(content=message, embed=embed, username=username, avatar_url=avatar_url, allowed_mentions=discord.AllowedMentions(everyone=False))
-    
+        await self.webhook.send(content=message, embed=embed, username=username, avatar_url=avatar_url, allowed_mentions=discord.AllowedMentions(everyone=False)) # type: ignore[reportArgumentType] Embed can be None.
+
+
+
     # Send a message to Discord "from" the server.
-    async def __send_server_message(self, message="", embed=None):
-        await self.webhook.send(content=message, embed=embed, username=config.webhook["server_name"], avatar_url = config.icons["minecraft"], allowed_mentions=discord.AllowedMentions(everyone=False))
-    
+    async def __send_server_message(self, message="", embed: discord.Embed|None=None):
+        await self.webhook.send(content=message, embed=embed, username=config.webhook.server_name, avatar_url = config.icons.minecraft, allowed_mentions=discord.AllowedMentions(everyone=False)) # type: ignore[reportArgumentType] Embed can be None.
+
+
+
     # Send a player chat to Discord.
     async def on_player_message_noreply(self, username:str, message:str):
         await self.__send_player_message(username, message=message)
-    
+
+
+
     # Send a player chat with a reply embed to Discord.
     async def on_player_message_reply(self, username:str, message:str, reply_author:str, reply_message:str):
         embed = discord.Embed(color=0x0000ff, description=f":leftwards_arrow_with_hook: **{reply_author}** said: {reply_message}")
 
         await self.__send_player_message(username, message=message, embed=embed)
+
+
 
     # Send a player join event to Discord.
     async def on_player_join(self, username:str):
@@ -62,29 +74,39 @@ class Bridge:
 
         await self.__send_server_message(embed=embed)
 
+
+
     # Send a player leave event to Discord.
     async def on_player_leave(self, username:str):
         embed = discord.Embed(color=0xff0000, description=f":outbox_tray: **{username}** left the game.")
 
         await self.__send_server_message(embed=embed)
-    
+
+
+
     # Send a server starting event to Discord.
     async def on_server_starting(self):
         embed = discord.Embed(color=0xccdd00, description=":yellow_circle: **The server is starting up...**")
 
         await self.__send_server_message(embed=embed)
-    
+
+
+
     # Send a server starting event to Discord.
     async def on_server_started(self):
         embed = discord.Embed(color=0x55dd55, description=":green_circle: **The server has started.**")
 
         await self.__send_server_message(embed=embed)
-    
+
+
+
     # Send a server starting event to Discord.
     async def on_server_stopping(self):
         embed = discord.Embed(color=0xdd5555, description=":red_circle: **The server has closed.**")
 
         await self.__send_server_message(embed=embed)
+
+
 
     # Send a server list event to Discord.
     async def on_server_list(self, current:str, max:str, players:str):
@@ -92,15 +114,21 @@ class Bridge:
 
         await self.__send_server_message(embed=embed)
 
+
+
     # Send a console message event to Discord.
     async def on_console_message(self, message:str):
         await self.__send_console_message(message)
-    
+
+
+
     # Send an advancement notification to Discord.
     async def on_advancement(self, username:str, advancement:str):
         embed = discord.Embed(color=0xcc00cc, description=f":medal: {username} has made the advancement {advancement}!")
         
         await self.__send_server_message(embed=embed)
+
+
 
     # Send a notification when a player tries to join and is not whitelisted.
     async def on_player_not_whitelisted(self, username:str):

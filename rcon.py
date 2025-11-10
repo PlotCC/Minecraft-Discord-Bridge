@@ -2,8 +2,9 @@
 
 from aiomcrcon import Client
 import asyncio
+from typing import Optional, cast
 
-from config import server as server_config
+import config
 
 class QueueWithResult:
     def __init__(self, process_item):
@@ -43,6 +44,7 @@ class QueueWithResult:
 
 class Rcon:
     _instance = None
+    client: Optional[Client] = None
 
 
 
@@ -57,24 +59,28 @@ class Rcon:
 
 
     def __init__(self):
-        None
+        pass
+
+
 
 
 
     async def connect(self):
         if self.client is None:
             self.client = Client(
-                server_config["rcon_host"],
-                server_config["rcon_port"],
-                server_config["rcon_password"],
+                config.rcon.host,
+                config.rcon.port,
+                config.rcon.password,
             )
         await self.client.connect()
 
 
 
     async def _send(self, command: str):
-        if not self.client:
+        if self.client is None:
             await self.connect()
+        self.client = cast(Client, self.client)
+        
 
         try:
             return await self.client.send_cmd(command)
@@ -83,6 +89,7 @@ class Rcon:
             self.client = None
             try:
                 await self.connect()
+                self.client = cast(Client, self.client)
                 return await self.client.send_cmd(command)
             except Exception as e:
                 return f"Failed to send command to server (after broken pipe): {e}", None

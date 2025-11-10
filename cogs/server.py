@@ -5,9 +5,11 @@ import datetime
 import logging
 import asyncio
 
+from discord_bot import DiscordBot
 from rcon import Rcon
 import config
 from utilities.parse_tmux_pid import get_tmux_pid
+import privelege_level
 
 LOG = logging.getLogger("MC-SERVER")
 
@@ -15,16 +17,19 @@ LOG = logging.getLogger("MC-SERVER")
 async def stop_server(bot):
     await bot.send_server_command("stop")
 
+
+
 # Start the server.
 def start_server(bot):
     bot.console_pane.reset()
-    bot.send_console_command("cd " + config.server["root"])
-    bot.send_console_command(config.programs["minecraft"])
+    bot.send_console_command("cd " + config.server.root)
+    bot.send_console_command(config.console.minecraft)
+
 
 
 def get_server_process():
     # Get the tmux session.
-    tree = get_tmux_pid(config.tmux_data["tmux_session"])
+    tree = get_tmux_pid(config.tmux_data.tmux_session)
 
     # Check if java process exists with the -jar argument.
     # NOTE: If we change the amount of tmux windows in the future, we will likely need to change this.
@@ -38,6 +43,7 @@ def get_server_process():
                 return descend(child)
 
     return descend(tree)
+
 
 
 def get_countdown_message(time: int):
@@ -59,6 +65,7 @@ def get_countdown_message(time: int):
         return "30 seconds"
     if time == 0:
         return "now"
+
 
 
 def get_time_after(time: datetime.time, seconds: int) -> datetime.time:
@@ -92,7 +99,7 @@ class ServerCog(commands.Cog):
     This also does automatic restarts.
     """
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: DiscordBot):
         self.bot = bot
         self.session_message = None
         self.server_pid = None
@@ -105,41 +112,23 @@ class ServerCog(commands.Cog):
         self.skip_restart = 0
         self.restart_time = 0
         self.crash_count = 0
-        self.rcon = Rcon()
+        self.rcon = bot.rcon # Shorten access a bit
+        self.kill_confirm_timestamp = datetime.datetime.now() - datetime.timedelta(seconds=31)
 
         # Start the autmatic tasks.
         self.automatic_stop_task.start()
         self.check_server_running.start()
 
-        # Function to send a command to the server console, to be used by cogs rather than invoking the console directly.
-        async def send_server_command(command: str):
-            """
-            Send a command to the console. This fails if the server is offline.
-            """
-            if not self.running:
-                raise Exception("Server is offline, cannot send command to server console.")
-            
-            # bot.console_pane.send_keys(command)
-            await self.rcon.send(command)
-        bot.send_server_command = send_server_command
 
-        # Function to send a command to the console, to be used by cogs rather than invoking the console directly.
-        def send_console_command(command: str):
-            """
-            Send a command to the console. This fails if the server is online.
-            """
-            if self.running:
-                raise Exception("Server is online, cannot send command to console.")
-            
-            bot.console_pane.send_keys(command)
-        bot.send_console_command = send_console_command
 
     @app_commands.command(
         name="shutdown", description="Shut down the Minecraft server."
     )
-    @app_commands.checks.cooldown(1, 180.0)
-    @app_commands.checks.has_permissions(administrator=True)
     async def shutdown(self, interaction: discord.Interaction) -> None:
+        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+
         if self.running:
             await stop_server(self.bot)
             self.stopping = True
@@ -153,10 +142,14 @@ class ServerCog(commands.Cog):
             await asyncio.sleep(4)
             await interaction.delete_original_response()
 
+
+
     @app_commands.command(name="startup", description="Start up the Minecraft server.")
-    @app_commands.checks.cooldown(1, 180.0)
-    @app_commands.checks.has_permissions(administrator=True)
     async def startup(self, interaction: discord.Interaction) -> None:
+        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+
         if not self.running:
             if self.crash_lock:
                 await interaction.response.send_message(
@@ -176,11 +169,16 @@ class ServerCog(commands.Cog):
             await asyncio.sleep(4)
             await interaction.delete_original_response()
 
+
+
     @app_commands.command(
         name="cancel-restart", description="Cancel the current restart timer."
     )
-    @app_commands.checks.has_permissions(administrator=True)
     async def cancel_restart_cmd(self, interaction: discord.Interaction) -> None:
+        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+
         if self.restart_time == 0:
             await interaction.response.send_message(
                 "No server restart in progress.", ephemeral=True
@@ -192,6 +190,8 @@ class ServerCog(commands.Cog):
         self.cancel_restart = True
         await interaction.response.send_message("Server restart will be cancelled.")
 
+
+
     @app_commands.command(
         name="skip-restart",
         description="Skip the next <n> server restarts. Defaults to 1.",
@@ -199,14 +199,19 @@ class ServerCog(commands.Cog):
     @app_commands.describe(
         count="The amount of restarts to skip, defaults to a single restart."
     )
-    @app_commands.checks.has_permissions(administrator=True)
     async def skip_restart_cmd(
         self, interaction: discord.Interaction, count: int = 1
     ) -> None:
+        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+
         self.skip_restart = count
         await interaction.response.send_message(
             f"The next {count} restarts will be skipped."
         )
+
+
 
     @app_commands.command(
         name="queue-restart",
@@ -215,10 +220,13 @@ class ServerCog(commands.Cog):
     @app_commands.describe(
         time="The amount of time to delay the restart by. This will override the current restart timer, if one is running."
     )
-    @app_commands.checks.has_permissions(administrator=True)
     async def queue_restart(
         self, interaction: discord.Interaction, time: int = 3601
     ) -> None:
+        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+
         self.restart_time = time + 1
         if not self.automatic_restart_task.is_running():
             self.restart_lock = True
@@ -230,14 +238,40 @@ class ServerCog(commands.Cog):
             await interaction.response.send_message(
                 f"Restart delay updated to {time} seconds."
             )
+    
+
+
+    @app_commands.command(
+        name="kill",
+        description="Forcibly kill the Minecraft server process.",
+    )
+    async def kill_server(self, interaction: discord.Interaction) -> None:
+        if not privelege_level.test(interaction, config.priveleges.server_control_privelege):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+        
+        if (datetime.datetime.now() - self.kill_confirm_timestamp).total_seconds() > 30:
+            self.kill_confirm_timestamp = datetime.datetime.now()
+            await interaction.response.send_message(
+                "Are you sure you want to kill the server? This is unsafe and may cause world corruption. Re-run the command within 30 seconds to confirm."
+            )
+            return
+
+        self.bot.tmux.console_pane.send_keys("C-c C-c C-c C-c C-c")  # Send SIGINT to the server process.
+        await interaction.response.send_message("Server is being forcibly killed.")
+
+
 
     @app_commands.command(
         name="set-state",
         description="Mark the server as online or offline, useful if server module is reloaded.",
     )
     @app_commands.describe(online="The server state.")
-    @app_commands.checks.has_permissions(administrator=True)
     async def set_state(self, interaction: discord.Interaction, online: bool) -> None:
+        if not privelege_level.test(interaction, config.priveleges.owner):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+
         self.running = online
         await interaction.response.send_message(
             f"Set server online state to {online}.", delete_after=4
@@ -247,50 +281,98 @@ class ServerCog(commands.Cog):
             await self.session_message.delete()
             self.session_message = None
 
+
+
     @app_commands.command(
         name="unlock",
         description="Unlock the server startup after being stuck in a crash loop.",
     )
-    @app_commands.checks.has_permissions(administrator=True)
     async def unlock(self, interaction: discord.Interaction) -> None:
+        if not privelege_level.test(interaction, config.priveleges.admin):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+
         self.crash_lock = False
         self.crash_count = 0
         await interaction.response.send_message(
             "Server startup unlocked.", ephemeral=True, delete_after=4
         )
 
+
+
     @app_commands.command(
         name="reboot-schedule",
         description="Display the automatic restart schedule of the Minecraft server.",
     )
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
+        if not privelege_level.test(interaction, config.priveleges.user):
+            await interaction.response.send_message("You do not have permission to use this command.")
+            return
+
         await interaction.response.send_message(
-            f"Server restart begins at {config.server['restart_time']} (Timezone: {config.server['restart_time'].tzinfo.key}), delay is {config.server['restart_delay']} seconds.",
+            f"Server restart begins at {config.server.restart_time} (Timezone: {config.server.restart_time.tzinfo.tzname if config.server.restart_time.tzinfo is not None else 'Unknown'}), delay is {config.server.restart_delay} seconds.",
             ephemeral=True,
         )
+
+
 
     @tasks.loop(seconds=1)
     async def automatic_restart_task(self):
         if self.cancel_restart:
             self.cancel_restart = False
             self.restart_lock = False
-            self.automatic_restart_task.stop()
+            self.automatic_restart_task.stop() # type: ignore[reportAttributeAccessIssue] .stop() exists.
             return
 
         if self.skip_restart > 0:
             self.skip_restart -= 1
             self.restart_lock = False
-            self.automatic_restart_task.stop()
+            self.automatic_restart_task.stop() # type: ignore[reportAttributeAccessIssue] .stop() exists.
             return
 
         if self.running:
             self.restart_time -= 1
 
             if self.restart_time <= -1:
-                self.automatic_restart_task.stop()
+                self.automatic_restart_task.stop() # type: ignore[reportAttributeAccessIssue] .stop() exists.
                 await stop_server(self.bot)
                 self.running = False
-                await asyncio.sleep(120)
+                
+                # Check every 5 seconds for 2 minutes to see if the server has stopped.
+                for _ in range(24):
+                    await asyncio.sleep(5)
+                    if not get_server_process():
+                        break
+
+                
+                if get_server_process():
+                    self.running = True
+
+                    embed = discord.Embed(
+                        color=0xFF0000,
+                        description=":no_entry: Server failed to stop, not continuing with restart.",
+                    )
+                    embed.set_footer(text="Moderators can use `/kill` to forcibly stop the server.")
+
+                    await self.bot.channels.bridge.send(
+                        embed=embed
+                    )
+
+                    # Notify operators
+                    if self.notifications:
+                        content = None
+                        if config.server.ping_role_in_bridge:
+                            content = self.notification_ping
+                        else:
+                            await self.bot.channels.notifications.send(
+                                self.notification_ping
+                                + " The server failed to stop during an automatic restart. Please investigate."
+                            )
+                            embed.set_footer(text="Operators have been notified.")
+
+                        await self.bot.channels.bridge.send(content=content, embed=embed)
+                    return
+
                 if not self.running:
                     LOG.info("Server automatically starting up.")
                     start_server(self.bot)
@@ -301,14 +383,16 @@ class ServerCog(commands.Cog):
 
             time = get_countdown_message(self.restart_time)
             if time:
-                await self.bot.bridge_channel.send(
+                await self.bot.channels.bridge.send(
                     embed=discord.Embed(
                         color=0xFF00FF,
                         description=f":warning: Automatic server restart in {time}.",
                     )
                 )
 
-    @tasks.loop(time=config.server["restart_time"])
+
+
+    @tasks.loop(time=config.server.restart_time)
     async def automatic_stop_task(self):
         if self.restart_lock:
             return
@@ -316,17 +400,21 @@ class ServerCog(commands.Cog):
         if self.running:
             self.restart_lock = True
             LOG.info(
-                f"Server automatically shutting down after {config.server['restart_delay']} seconds."
+                f"Server automatically shutting down after {config.server.restart_delay} seconds."
             )
-            self.restart_time = config.server["restart_delay"] + 1
+            self.restart_time = config.server.restart_delay + 1
             if not self.automatic_restart_task.is_running():
                 self.automatic_restart_task.start()
+
+
 
     @tasks.loop(count=1)
     async def check_crash_loop(self):
         await asyncio.sleep(300)
         LOG.info("Crash loop timeout.")
-        self.check_crash_loop.stop()
+        self.check_crash_loop.stop() # type: ignore[reportAttributeAccessIssue] .stop() exists.
+
+
 
     # Check that the server is still running. If the server shuts down unexpectedly, this will detect it.
     @tasks.loop(seconds=5)
@@ -376,16 +464,16 @@ class ServerCog(commands.Cog):
                     description=":no_entry: Crash loop detected, server startup locked.",
                 )
                 if self.notifications:
-                    if config.server["ping_role_in_bridge"]:
+                    if config.server.ping_role_in_bridge:
                         content = self.notification_ping
                     else:
-                        await self.bot.notification_channel.send(
+                        await self.bot.channels.notifications.send(
                             self.notification_ping
                             + " The server has crashed 5 times in a row and has been locked. Please investigate."
                         )
                         embed.set_footer(text="Operators have been notified.")
 
-                await self.bot.bridge_channel.send(content=content, embed=embed)
+                await self.bot.channels.bridge.send(content=content, embed=embed)
             else:
                 LOG.warn(
                     f"Server crashed ({self.crash_count} times in a row), restarting."
@@ -402,48 +490,54 @@ class ServerCog(commands.Cog):
                     else ":warning: Server crash detected, restarting. Server is potentially in a crash-loop.",
                 )
                 if self.notifications:
-                    if config.server["ping_role_in_bridge"]:
+                    if config.server.ping_role_in_bridge:
                         content = self.notification_ping
                     else:
-                        await self.bot.notification_channel.send(
+                        await self.bot.channels.notifications.send(
                             self.notification_ping
                             + " The server has crashed and is restarting."
                         )
                         embed.set_footer(text="Operators have been notified.")
 
-                await self.bot.bridge_channel.send(content=content, embed=embed)
+                await self.bot.channels.bridge.send(content=content, embed=embed)
+
+
 
     async def get_channels(self):
         LOG.info("Getting channels.")
 
         LOG.info("  Bridge channel.")
-        self.bot.bridge_channel = self.bot.get_channel(config.bot["channel_id"])
+        bridge_channel = self.bot.get_channel(config.bot.channel_id)
+        assert bridge_channel != None, "Bridge channel ID is invalid."
+        assert isinstance(bridge_channel, discord.TextChannel), "Bridge channel is not a text channel."
+        self.bot.channels.bridge = bridge_channel
         LOG.info("    Got bridge channel.")
 
         LOG.info("  Notification channel (if enabled)")
-        self.notifications = config.server["enable_notifications"]
+        self.notifications = config.server.enable_notifications
         if self.notifications:
             self.notification_ping = (
-                "<@" + str(config.server["notification_role_id"]) + ">"
+                "<@" + str(config.server.notification_role_id) + ">"
             )
 
-            if config.server["ping_role_in_bridge"]:
+            if config.server.ping_role_in_bridge:
                 LOG.info(
                     "    Not getting notification channel, ping_role_in_bridge is true. Ping will be appended to the message in the bridge channel."
                 )
             else:
-                self.bot.notification_channel = self.bot.get_channel(
-                    config.server["notification_channel_id"]
+                notification_channel = self.bot.get_channel(
+                    config.server.notification_channel_id
                 )
+                assert notification_channel != None, "Notification channel ID is invalid."
+                assert isinstance(notification_channel, discord.TextChannel), "Notification channel is not a text channel."
+                self.bot.channels.notifications = notification_channel
                 LOG.info("    Got notification channel.")
         else:
             LOG.info(
                 "    Not getting notification channel, notifications are disabled."
             )
 
-        # TODO: Confirm that the channels were actually "gotten" in the above code.
-
-        if self.bot.session_existed:
+        if self.bot.tmux.session_existed:
             # Check if java process exists with the -jar argument.
             # NOTE: If we change the amount of tmux windows in the future, we will likely need to change this.
 
@@ -470,15 +564,21 @@ class ServerCog(commands.Cog):
 
             base_embed.set_footer(text="Use /set-state to override this.")
 
-            self.session_message = await self.bot.bridge_channel.send(embed=base_embed)
+            self.session_message = await self.bot.channels.bridge.send(embed=base_embed)
+
+
 
     @commands.Cog.listener()
     async def on_ready(self):
         await self.get_channels()
 
+
+
     async def cog_load(self):  # If the cog reloads, this can get the channel again.
         if self.bot.is_ready():
             await self.get_channels()
+
+
 
     async def cog_unload(self):
         if self.automatic_restart_task.is_running():
@@ -491,16 +591,16 @@ class ServerCog(commands.Cog):
             self.check_crash_loop.cancel() # This one doesn't need to safely exit.
 
         try:
-            await self.bot.notification_channel.send(":warning: Server cog unloaded.")
+            await self.bot.channels.notifications.send(":warning: Server cog unloaded.")
         except Exception as e:
             LOG.error(f"Failed to send cog unload notification: {e}")
 
 
 async def setup(bot):
     LOG.info(
-        f"Server shutdown timer is scheduled for {config.server['restart_time']} in timezone {config.server['restart_time'].tzinfo.key}, timer is {config.server['restart_delay']} seconds."
+        f"Server shutdown timer is scheduled for {config.server.restart_time} in timezone {config.server.restart_time.tzinfo.tzname if config.server.restart_time.tzinfo is not None else 'Unknown'}, timer is {config.server.restart_delay} seconds."
     )
     LOG.info(
-        f"Server should shut down around {get_time_after(config.server['restart_time'], config.server['restart_delay'])} and start back up around {get_time_after(config.server['restart_time'], config.server['restart_delay'] + 120)}."
+        f"Server should shut down around {get_time_after(config.server.restart_time, config.server.restart_delay)} and start back up around {get_time_after(config.server.restart_time, config.server.restart_delay + 120)}."
     )
     await bot.add_cog(ServerCog(bot))
