@@ -45,6 +45,7 @@ class QueueWithResult:
 class Rcon:
     _instance = None
     client: Optional[Client] = None
+    queue: QueueWithResult
 
 
 
@@ -63,9 +64,11 @@ class Rcon:
 
 
 
-
-
     async def connect(self):
+        try:
+            await self.close()
+        except: pass
+
         if self.client is None:
             self.client = Client(
                 config.rcon.host,
@@ -73,6 +76,9 @@ class Rcon:
                 config.rcon.password,
             )
         await self.client.connect()
+
+        # Reinitialize the queue to be empty.
+        self.queue = QueueWithResult(self._send)
 
 
 
