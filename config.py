@@ -110,6 +110,8 @@ class Rcon:
 
     # The prefix to use for meta rcon commands (reconnect, status, etc.).
     meta_command_prefix: str = ";"
+
+    timeout: float = 1.0  # Seconds to allow rcon commands to run before timing out.
 rcon = Rcon()
 
 

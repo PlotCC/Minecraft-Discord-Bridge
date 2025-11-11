@@ -9,6 +9,7 @@ import config
 class QueueWithResult:
     def __init__(self, process_item):
         self._queue = asyncio.Queue()
+        self.timeout: float = 1.0
         self._process_item = process_item
         self._processing_task = None
 
@@ -33,8 +34,10 @@ class QueueWithResult:
         while not self._queue.empty():
             item, result_future = await self._queue.get()
             try:
-                result = await self._process_item(item)  # Process item and get result
+                result = await asyncio.wait_for(self._process_item(item), timeout=self.timeout)
                 result_future.set_result(result)  # Set the result in the future
+            except asyncio.TimeoutError:
+                result_future.set_exception(asyncio.TimeoutError(f"Request timed out after {self.timeout} second(s)"))
             except Exception as e:
                 result_future.set_exception(e)  # Handle any exceptions
             finally:
