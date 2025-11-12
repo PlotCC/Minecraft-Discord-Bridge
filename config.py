@@ -30,11 +30,11 @@ bot = Bot()
 @dataclass(frozen=True)
 class Priveleges:
     # The levels of priveleges for various roles.
-    banned: PrivelegeLevel = PrivelegeLevel.BANNED
-    user: PrivelegeLevel = PrivelegeLevel.USER
-    moderator: PrivelegeLevel = PrivelegeLevel.MODERATOR
-    admin: PrivelegeLevel = PrivelegeLevel.ADMIN
-    owner: PrivelegeLevel = PrivelegeLevel.OWNER
+    banned: PrivelegeLevel = PrivelegeLevel.BANNED        # Level 0, cannot use the bot at all.
+    user: PrivelegeLevel = PrivelegeLevel.USER            # Level 1, can use basic commands.
+    moderator: PrivelegeLevel = PrivelegeLevel.MODERATOR  # Level 2, can use more advanced commands.
+    admin: PrivelegeLevel = PrivelegeLevel.ADMIN          # Level 3, can use most commands.
+    owner: PrivelegeLevel = PrivelegeLevel.OWNER          # Level 4, has all privileges.
 
     # The privelege required to use rcon commands.
     rcon_command_privelege: PrivelegeLevel = PrivelegeLevel.ADMIN
@@ -78,12 +78,19 @@ class Server:
     # hour, then at 30 mins, 15 mins, 10 mins, 5 mins, 1 min, 30 seconds, and
     # finally in a countdown from 10 seconds to 0.
     restart_delay: int = 3600  # 1 hour by default.
-    root: str = "/somewhere/"  # Absolute path to the minecraft server root folder
-    
-    # This section controls whether or not the bot pings you when the server crashes, and where/who it should ping.
+
+    # Absolute path to the minecraft server root folder.
+    root: str = "/somewhere/"
+
+    # Whether crash notifications (as well as some other notifications) are enabled.
     enable_notifications: bool = True
+
+    # The channel ID to send notifications to.
     notification_channel_id: int = 0
+
+    # The role ID to ping when the server crashes. Can be a user ID as well.
     notification_role_id: int = 0
+
     # If you want the bot to ping this role in the same message that it notifies the bridge channel of a crash, set this to True.
     # Otherwise, it will send a separate message to the notification channel.
     ping_role_in_bridge: bool = False
