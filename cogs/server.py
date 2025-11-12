@@ -126,7 +126,7 @@ class ServerCog(commands.Cog):
     )
     async def shutdown(self, interaction: discord.Interaction) -> None:
         if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
             return
 
         if self.running:
@@ -147,7 +147,7 @@ class ServerCog(commands.Cog):
     @app_commands.command(name="startup", description="Start up the Minecraft server.")
     async def startup(self, interaction: discord.Interaction) -> None:
         if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
             return
 
         if not self.running:
@@ -176,7 +176,7 @@ class ServerCog(commands.Cog):
     )
     async def cancel_restart_cmd(self, interaction: discord.Interaction) -> None:
         if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
             return
 
         if self.restart_time == 0:
@@ -203,7 +203,7 @@ class ServerCog(commands.Cog):
         self, interaction: discord.Interaction, count: int = 1
     ) -> None:
         if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
             return
 
         self.skip_restart = count
@@ -224,7 +224,7 @@ class ServerCog(commands.Cog):
         self, interaction: discord.Interaction, time: int = 3601
     ) -> None:
         if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
             return
 
         self.restart_time = time + 1
@@ -247,7 +247,7 @@ class ServerCog(commands.Cog):
     )
     async def kill_server(self, interaction: discord.Interaction) -> None:
         if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
             return
         
         if (datetime.datetime.now() - self.kill_confirm_timestamp).total_seconds() > 30:
@@ -269,7 +269,7 @@ class ServerCog(commands.Cog):
     @app_commands.describe(online="The server state.")
     async def set_state(self, interaction: discord.Interaction, online: bool) -> None:
         if not privelege_test.test(interaction, config.priveleges.owner):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.owner))
             return
 
         self.running = online
@@ -289,7 +289,7 @@ class ServerCog(commands.Cog):
     )
     async def unlock(self, interaction: discord.Interaction) -> None:
         if not privelege_test.test(interaction, config.priveleges.admin):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.admin))
             return
 
         self.crash_lock = False
@@ -306,7 +306,7 @@ class ServerCog(commands.Cog):
     )
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
         if not privelege_test.test(interaction, config.priveleges.user):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.user))
             return
 
         await interaction.response.send_message(

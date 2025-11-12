@@ -30,7 +30,7 @@ class UserCog(commands.Cog):
         Get information about yourself.
         """
         if not privelege_test.test(interaction, config.priveleges.user):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.user))
             return
 
         user = interaction.user

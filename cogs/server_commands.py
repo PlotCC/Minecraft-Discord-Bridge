@@ -16,61 +16,6 @@ import privelege_test
 LOG = logging.getLogger("SERVER-COMMANDS")
 
 
-funny_denial_messages = [
-    "# NUH UH", # Lazy man's way of adding a higher chance of this message: just add it multiple times.
-    "# NUH UH",
-    "# NUH UH",
-    "# NUH UH",
-    "# NUH UH",
-    "# NUH UH",
-    "# NUH UH",
-    "+1 for trying, but no.",
-    "+1 for trying, but no.",
-    "+1 for trying, but no.",
-    "+1 for trying, but no.",
-    "+1 for trying, but no.",
-    "+1 for trying, but no.",
-    "+1 for trying, but no.",
-    "+1 for trying, but no.",
-    "+1 for trying, but no.",
-    "+1 for trying, but no.",
-    "+1 for trying, but no.",
-    "I'm sorry, Dave. I'm afraid I can't do that.",
-    "I'm sorry, Dave. I'm afraid I can't do that.",
-    "I'm sorry, Dave. I'm afraid I can't do that.",
-    "The system has decided you are not worthy of holding this power.",
-    "The system has decided you are not worthy of holding this power.",
-    "The system has decided you are not worthy of holding this power.",
-    "You're not the owner of this bot.",
-    "You're not my dad!",
-    "This is a VIP-only area. Get out.",
-    "Try again in another universe.",
-    "You're not on the guest list.",
-    "Try asking nicely next time?",
-    "Your credentials are expired.",
-    "Someone told me you weren't allowed to do that, and I always listen to strangers.",
-    "Meh, I don't feel like it.",
-    "I'm in your walls.",
-    "SHUT UP SHUT UP SHUT UP",
-    "lalalalalala I can't hear you",
-    "Sorry, we don't just let *anyone* run commands here.",
-    "Access denied.",
-    "Your access level was revoked due to suspicious activity.",
-    "-# No",
-    "Try waving a magic wand next time.",
-    "You can bribe me with money, not with commands.",
-    "...",
-    ":scream: Server is shutting down. :scream:",
-    "I'll ping the owner!",
-    "You are not a member of the sudoers file. This incident will be reported.",
-]
-
-
-
-def get_denial_message():
-    return funny_denial_messages[randint(0, len(funny_denial_messages)-1)]
-
-
 
 class ServerCommandsCog(commands.Cog):
     """
@@ -97,7 +42,7 @@ class ServerCommandsCog(commands.Cog):
         Lockout the server.
         """
         if not privelege_test.test(interaction, config.priveleges.owner):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.owner))
             return
 
         try:
@@ -145,7 +90,7 @@ class ServerCommandsCog(commands.Cog):
         Unlock the server.
         """
         if not privelege_test.test(interaction, config.priveleges.owner):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.owner))
             return
 
         try:
@@ -182,7 +127,7 @@ class ServerCommandsCog(commands.Cog):
         Add a player to the whitelist.
         """
         if not privelege_test.test(interaction, config.priveleges.user):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.user))
             return
 
         if self.locked_out:
@@ -208,7 +153,7 @@ class ServerCommandsCog(commands.Cog):
     )
     async def list(self, interaction: discord.Interaction) -> None:
         if not privelege_test.test(interaction, config.priveleges.user):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.user))
             return
 
         response, id = await self.rcon.send_server_command("list")
@@ -225,7 +170,7 @@ class ServerCommandsCog(commands.Cog):
         Run a custom command.
         """
         if not privelege_test.test(interaction, config.priveleges.admin):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.admin))
             return
 
         try:
@@ -246,8 +191,7 @@ class ServerCommandsCog(commands.Cog):
                 return
             if message.content.startswith(config.rcon.command_prefix):
                 if not privelege_test.test(message, config.priveleges.rcon_command_privelege):
-                    denial_message = get_denial_message()
-                    await message.reply(denial_message)
+                    await message.reply(privelege_test.reject_message(config.priveleges.rcon_command_privelege))
                     return
 
                 try:
@@ -264,8 +208,7 @@ class ServerCommandsCog(commands.Cog):
                     await message.reply(f"Failed to send command to server: {e}")
             elif message.content.startswith(config.rcon.meta_command_prefix):
                 if not privelege_test.test(message, config.priveleges.rcon_meta_command_privelege):
-                    denial_message = get_denial_message()
-                    await message.reply(denial_message)
+                    await message.reply(privelege_test.reject_message(config.priveleges.rcon_meta_command_privelege))
                     return
 
                 command = message.content[len(config.rcon.meta_command_prefix):].strip()

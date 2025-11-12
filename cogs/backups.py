@@ -338,7 +338,7 @@ class BackupsCog(commands.Cog):
         await interaction.response.defer(thinking=True)
 
         if not privelege_test.test(interaction, config.priveleges.backup_privelege):
-            await interaction.followup.send("You do not have permission to use this command.")
+            await interaction.followup.send(privelege_test.reject_message(config.priveleges.backup_privelege))
             return
 
         if fake_hourly:
@@ -370,7 +370,7 @@ class BackupsCog(commands.Cog):
         await interaction.response.defer(thinking=True)
 
         if not privelege_test.test(interaction, config.priveleges.backup_privelege):
-            await interaction.followup.send("You do not have permission to use this command.")
+            await interaction.followup.send(privelege_test.reject_message(config.priveleges.backup_privelege))
             return
 
         try:
@@ -415,7 +415,7 @@ class BackupsCog(commands.Cog):
         """
 
         if not privelege_test.test(interaction, config.priveleges.backup_privelege):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.backup_privelege))
             return
 
         if not self.auto_backup.is_running():
@@ -434,7 +434,7 @@ class BackupsCog(commands.Cog):
         """
 
         if not privelege_test.test(interaction, config.priveleges.backup_privelege):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.backup_privelege))
             return
 
         if self.auto_backup.is_running():
@@ -452,7 +452,7 @@ class BackupsCog(commands.Cog):
         """
 
         if not privelege_test.test(interaction, config.priveleges.backup_privelege):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.backup_privelege))
             return
 
         await interaction.response.defer(thinking=True)

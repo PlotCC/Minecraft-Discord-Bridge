@@ -24,7 +24,7 @@ class SyncCog(commands.Cog):
         """
 
         if not privelege_test.test(interaction, config.priveleges.owner):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.owner))
             return
 
         LOG.info("Resyncing command tree...")

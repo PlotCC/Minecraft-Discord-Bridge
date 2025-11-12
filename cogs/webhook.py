@@ -72,7 +72,7 @@ class WebhookCog(commands.Cog):
     ])
     async def actions(self, interaction: discord.Interaction, action: app_commands.Choice[int], enabled: typing.Optional[bool]=None) -> None:
         if not privelege_test.test(interaction, config.priveleges.admin):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.admin))
             return
         
         LOG.info(f"Action [{action.name} ({action.value}) -> {enabled}] requested by {interaction.user.name}#{interaction.user.discriminator}.")
@@ -100,7 +100,7 @@ class WebhookCog(commands.Cog):
     )
     async def reset_log(self, interaction: discord.Interaction) -> None:
         if not privelege_test.test(interaction, config.priveleges.moderator):
-            await interaction.response.send_message("You do not have permission to use this command.")
+            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.moderator))
             return
         
         self.f = open_latest_log()
