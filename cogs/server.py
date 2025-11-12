@@ -14,16 +14,16 @@ import privelege_test
 LOG = logging.getLogger("MC-SERVER")
 
 # Stop the server.
-async def stop_server(bot):
-    await bot.send_server_command("stop")
+async def stop_server(bot: DiscordBot):
+    await bot.rcon.send_server_command("stop")
 
 
 
 # Start the server.
-def start_server(bot):
-    bot.console_pane.reset()
-    bot.send_console_command("cd " + config.server.root)
-    bot.send_console_command(config.console.minecraft)
+def start_server(bot: DiscordBot):
+    bot.tmux.console_pane.reset()
+    bot.rcon.send_console_command("cd " + config.server.root)
+    bot.rcon.send_console_command(config.console.minecraft)
 
 
 
