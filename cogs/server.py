@@ -256,6 +256,9 @@ class ServerCog(commands.Cog):
                 "Are you sure you want to kill the server? This is unsafe and may cause world corruption. Re-run the command within 30 seconds to confirm."
             )
             return
+        
+        # Reset the timestamp to prevent immediate re-use.
+        self.kill_confirm_timestamp = datetime.datetime.now() - datetime.timedelta(seconds=31)
 
         await interaction.response.send_message("Killing server (attempt 1/5)...")
         for _attempt in range(5):
