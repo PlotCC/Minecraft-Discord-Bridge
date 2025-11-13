@@ -24,7 +24,7 @@ class AboutCog(commands.Cog):
         description="Get information about yourself in the context of the bot."
     )
     async def about_me(self, interaction: discord.Interaction) -> None:
-        user_definitions = config.priveleges.users
+        user_definitions = config.privileges.users
         user_id = interaction.user.id
 
         embed = discord.Embed(
@@ -34,8 +34,8 @@ class AboutCog(commands.Cog):
         embed.add_field(name="Username", value=str(interaction.user), inline=False)
         embed.add_field(name="User ID", value=str(user_id), inline=False)
         embed.add_field(
-            name="Privelege Level",
-            value=user_definitions.get(user_id, config.priveleges.user).name.title(),
+            name="privilege Level",
+            value=user_definitions.get(user_id, config.privileges.user).name.title(),
             inline=False
         )
         await interaction.response.send_message(embed=embed)

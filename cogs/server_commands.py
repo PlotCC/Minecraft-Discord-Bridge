@@ -11,7 +11,7 @@ from traceback import format_exc
 import config
 from discord_bot import DiscordBot
 from rcon import Rcon
-import privelege_test
+import privilege_test
 
 LOG = logging.getLogger("SERVER-COMMANDS")
 
@@ -41,8 +41,8 @@ class ServerCommandsCog(commands.Cog):
         """
         Lockout the server.
         """
-        if not privelege_test.test(interaction, config.priveleges.owner):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.owner))
+        if not privilege_test.test(interaction, config.privileges.owner):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.owner))
             return
 
         try:
@@ -89,8 +89,8 @@ class ServerCommandsCog(commands.Cog):
         """
         Unlock the server.
         """
-        if not privelege_test.test(interaction, config.priveleges.owner):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.owner))
+        if not privilege_test.test(interaction, config.privileges.owner):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.owner))
             return
 
         try:
@@ -126,8 +126,8 @@ class ServerCommandsCog(commands.Cog):
         """
         Add a player to the whitelist.
         """
-        if not privelege_test.test(interaction, config.priveleges.user):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.user))
+        if not privilege_test.test(interaction, config.privileges.user):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.user))
             return
 
         if self.locked_out:
@@ -152,8 +152,8 @@ class ServerCommandsCog(commands.Cog):
         name="list", description="Get a list of players that are currently online."
     )
     async def list(self, interaction: discord.Interaction) -> None:
-        if not privelege_test.test(interaction, config.priveleges.user):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.user))
+        if not privilege_test.test(interaction, config.privileges.user):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.user))
             return
 
         response, id = await self.rcon.send_server_command("list")
@@ -169,8 +169,8 @@ class ServerCommandsCog(commands.Cog):
         """
         Run a custom command.
         """
-        if not privelege_test.test(interaction, config.priveleges.admin):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.admin))
+        if not privilege_test.test(interaction, config.privileges.admin):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.admin))
             return
 
         try:
@@ -190,8 +190,8 @@ class ServerCommandsCog(commands.Cog):
             if message.content.strip() == "":
                 return
             if message.content.startswith(config.rcon.command_prefix):
-                if not privelege_test.test(message, config.priveleges.rcon_command_privelege):
-                    await message.reply(privelege_test.reject_message(config.priveleges.rcon_command_privelege))
+                if not privilege_test.test(message, config.privileges.rcon_command_privilege):
+                    await message.reply(privilege_test.reject_message(config.privileges.rcon_command_privilege))
                     return
 
                 try:
@@ -207,8 +207,8 @@ class ServerCommandsCog(commands.Cog):
                 except Exception as e:
                     await message.reply(f"Failed to send command to server: {e}")
             elif message.content.startswith(config.rcon.meta_command_prefix):
-                if not privelege_test.test(message, config.priveleges.rcon_meta_command_privelege):
-                    await message.reply(privelege_test.reject_message(config.priveleges.rcon_meta_command_privelege))
+                if not privilege_test.test(message, config.privileges.rcon_meta_command_privilege):
+                    await message.reply(privilege_test.reject_message(config.privileges.rcon_meta_command_privilege))
                     return
 
                 command = message.content[len(config.rcon.meta_command_prefix):].strip()

@@ -1,7 +1,7 @@
 import datetime
 import logging
 from zoneinfo import ZoneInfo
-from privelege_level import PrivelegeLevel
+from privilege_level import PrivilegeLevel
 from dataclasses import dataclass, field
 
 
@@ -28,36 +28,36 @@ bot = Bot()
 
 
 @dataclass(frozen=True)
-class Priveleges:
-    # The levels of priveleges for various roles.
-    banned: PrivelegeLevel = PrivelegeLevel.BANNED        # Level 0, cannot use the bot at all.
-    user: PrivelegeLevel = PrivelegeLevel.USER            # Level 1, can use basic commands.
-    moderator: PrivelegeLevel = PrivelegeLevel.MODERATOR  # Level 2, can use more advanced commands.
-    admin: PrivelegeLevel = PrivelegeLevel.ADMIN          # Level 3, can use most commands.
-    owner: PrivelegeLevel = PrivelegeLevel.OWNER          # Level 4, has all privileges.
+class Privileges:
+    # The levels of Privileges for various roles.
+    banned: PrivilegeLevel = PrivilegeLevel.BANNED        # Level 0, cannot use the bot at all.
+    user: PrivilegeLevel = PrivilegeLevel.USER            # Level 1, can use basic commands.
+    moderator: PrivilegeLevel = PrivilegeLevel.MODERATOR  # Level 2, can use more advanced commands.
+    admin: PrivilegeLevel = PrivilegeLevel.ADMIN          # Level 3, can use most commands.
+    owner: PrivilegeLevel = PrivilegeLevel.OWNER          # Level 4, has all privileges.
 
-    # The privelege required to use rcon commands.
-    rcon_command_privelege: PrivelegeLevel = PrivelegeLevel.ADMIN
+    # The Privilege required to use rcon commands.
+    rcon_command_privilege: PrivilegeLevel = PrivilegeLevel.ADMIN
 
-    # The privelege required to use meta rcon commands.
-    rcon_meta_command_privelege: PrivelegeLevel = PrivelegeLevel.ADMIN
+    # The privilege required to use meta rcon commands.
+    rcon_meta_command_privilege: PrivilegeLevel = PrivilegeLevel.ADMIN
 
-    # The privelege required to send commands to the server console
-    console_command_privelege: PrivelegeLevel = PrivelegeLevel.ADMIN
+    # The privilege required to send commands to the server console
+    console_command_privilege: PrivilegeLevel = PrivilegeLevel.ADMIN
 
-    # The privelege required to start/stop/restart the server.
-    server_control_privelege: PrivelegeLevel = PrivelegeLevel.MODERATOR
+    # The privilege required to start/stop/restart the server.
+    server_control_privilege: PrivilegeLevel = PrivilegeLevel.MODERATOR
 
-    # The privelege required to view/create backups.
-    backup_privelege: PrivelegeLevel = PrivelegeLevel.MODERATOR
+    # The privilege required to view/create backups.
+    backup_privilege: PrivilegeLevel = PrivilegeLevel.MODERATOR
 
-    # Map of user IDs to their privelege levels.
-    users: dict[int, PrivelegeLevel] = field(
+    # Map of user IDs to their privilege levels.
+    users: dict[int, PrivilegeLevel] = field(
         default_factory=lambda: {
-            bot.owner_id: PrivelegeLevel.OWNER
+            bot.owner_id: PrivilegeLevel.OWNER
         }
     )
-priveleges = Priveleges()
+privileges = Privileges()
 
 
 

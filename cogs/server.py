@@ -9,7 +9,7 @@ from discord_bot import DiscordBot
 from rcon import Rcon
 import config
 from utilities.parse_tmux_pid import get_tmux_pid
-import privelege_test
+import privilege_test
 
 LOG = logging.getLogger("MC-SERVER")
 
@@ -37,7 +37,7 @@ def get_server_process():
     # Get the java process.
     def descend(node):
         for child in node["children"]:
-            if child["process_name"].find("java"):
+            if child["process_name"].find("java") != -1:
                 return child
             else:
                 return descend(child)
@@ -125,8 +125,8 @@ class ServerCog(commands.Cog):
         name="shutdown", description="Shut down the Minecraft server."
     )
     async def shutdown(self, interaction: discord.Interaction) -> None:
-        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
+        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
             return
 
         if self.running:
@@ -146,8 +146,8 @@ class ServerCog(commands.Cog):
 
     @app_commands.command(name="startup", description="Start up the Minecraft server.")
     async def startup(self, interaction: discord.Interaction) -> None:
-        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
+        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
             return
 
         if not self.running:
@@ -175,8 +175,8 @@ class ServerCog(commands.Cog):
         name="cancel-restart", description="Cancel the current restart timer."
     )
     async def cancel_restart_cmd(self, interaction: discord.Interaction) -> None:
-        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
+        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
             return
 
         if self.restart_time == 0:
@@ -202,8 +202,8 @@ class ServerCog(commands.Cog):
     async def skip_restart_cmd(
         self, interaction: discord.Interaction, count: int = 1
     ) -> None:
-        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
+        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
             return
 
         self.skip_restart = count
@@ -223,8 +223,8 @@ class ServerCog(commands.Cog):
     async def queue_restart(
         self, interaction: discord.Interaction, time: int = 3601
     ) -> None:
-        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
+        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
             return
 
         self.restart_time = time + 1
@@ -246,8 +246,8 @@ class ServerCog(commands.Cog):
         description="Forcibly kill the Minecraft server process.",
     )
     async def kill_server(self, interaction: discord.Interaction) -> None:
-        if not privelege_test.test(interaction, config.priveleges.server_control_privelege):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.server_control_privelege))
+        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
             return
         
         if (datetime.datetime.now() - self.kill_confirm_timestamp).total_seconds() > 30:
@@ -282,8 +282,8 @@ class ServerCog(commands.Cog):
     )
     @app_commands.describe(online="The server state.")
     async def set_state(self, interaction: discord.Interaction, online: bool) -> None:
-        if not privelege_test.test(interaction, config.priveleges.owner):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.owner))
+        if not privilege_test.test(interaction, config.privileges.owner):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.owner))
             return
 
         self.running = online
@@ -302,8 +302,8 @@ class ServerCog(commands.Cog):
         description="Unlock the server startup after being stuck in a crash loop.",
     )
     async def unlock(self, interaction: discord.Interaction) -> None:
-        if not privelege_test.test(interaction, config.priveleges.admin):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.admin))
+        if not privilege_test.test(interaction, config.privileges.admin):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.admin))
             return
 
         self.crash_lock = False
@@ -319,8 +319,8 @@ class ServerCog(commands.Cog):
         description="Display the automatic restart schedule of the Minecraft server.",
     )
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
-        if not privelege_test.test(interaction, config.priveleges.user):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.user))
+        if not privilege_test.test(interaction, config.privileges.user):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.user))
             return
 
         await interaction.response.send_message(

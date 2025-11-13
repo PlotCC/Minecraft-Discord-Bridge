@@ -49,9 +49,6 @@ async def startup():
     
     if not session:
         raise Exception("Failed to create or find tmux session. Is tmux installed and working?")
-
-    # Get the tmux server object.
-    Server = libtmux.Server()
     
     if not session:
         raise Exception("Tmux session existed but also it did not. Weird.")

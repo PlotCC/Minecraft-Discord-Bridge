@@ -5,7 +5,7 @@ import logging
 import asyncio
 
 import config
-import privelege_test
+import privilege_test
 
 LOG = logging.getLogger("BACKUP")
 
@@ -29,13 +29,13 @@ class UserCog(commands.Cog):
         """
         Get information about yourself.
         """
-        if not privelege_test.test(interaction, config.priveleges.user):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.user))
+        if not privilege_test.test(interaction, config.privileges.user):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.user))
             return
 
         user = interaction.user
         user_id = user.id
-        user_level = config.priveleges.users.get(user_id, config.priveleges.user)
+        user_level = config.privileges.users.get(user_id, config.privileges.user)
 
         embed = discord.Embed(
             title="Who Am I?",
@@ -43,7 +43,7 @@ class UserCog(commands.Cog):
         )
         embed.add_field(name="Username", value=str(user), inline=False)
         embed.add_field(name="User ID", value=str(user_id), inline=False)
-        embed.add_field(name="Privelege Level", value=user_level.name.title(), inline=False)
+        embed.add_field(name="Privilege Level", value=user_level.name.title(), inline=False)
 
         await interaction.response.send_message(embed=embed)
 

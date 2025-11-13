@@ -5,7 +5,7 @@ import logging
 
 import config
 from discord_bot import DiscordBot
-import privelege_test
+import privilege_test
 
 LOG = logging.getLogger("SYNC")
 
@@ -23,8 +23,8 @@ class SyncCog(commands.Cog):
         Properly re-synchronize the command tree, deleting old commands as well.
         """
 
-        if not privelege_test.test(interaction, config.priveleges.owner):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.owner))
+        if not privilege_test.test(interaction, config.privileges.owner):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.owner))
             return
 
         LOG.info("Resyncing command tree...")

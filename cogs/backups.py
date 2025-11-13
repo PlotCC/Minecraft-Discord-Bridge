@@ -10,7 +10,7 @@ from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
 import config
 from discord_bot import DiscordBot
-import privelege_test
+import privilege_test
 
 LOG = logging.getLogger("BACKUP")
 
@@ -337,8 +337,8 @@ class BackupsCog(commands.Cog):
         """
         await interaction.response.defer(thinking=True)
 
-        if not privelege_test.test(interaction, config.priveleges.backup_privelege):
-            await interaction.followup.send(privelege_test.reject_message(config.priveleges.backup_privelege))
+        if not privilege_test.test(interaction, config.privileges.backup_privilege):
+            await interaction.followup.send(privilege_test.reject_message(config.privileges.backup_privilege))
             return
 
         if fake_hourly:
@@ -369,8 +369,8 @@ class BackupsCog(commands.Cog):
         """
         await interaction.response.defer(thinking=True)
 
-        if not privelege_test.test(interaction, config.priveleges.backup_privelege):
-            await interaction.followup.send(privelege_test.reject_message(config.priveleges.backup_privelege))
+        if not privilege_test.test(interaction, config.privileges.backup_privilege):
+            await interaction.followup.send(privilege_test.reject_message(config.privileges.backup_privilege))
             return
 
         try:
@@ -414,8 +414,8 @@ class BackupsCog(commands.Cog):
         Stop automatic backups.
         """
 
-        if not privelege_test.test(interaction, config.priveleges.backup_privelege):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.backup_privelege))
+        if not privilege_test.test(interaction, config.privileges.backup_privilege):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.backup_privilege))
             return
 
         if not self.auto_backup.is_running():
@@ -433,8 +433,8 @@ class BackupsCog(commands.Cog):
         Start automatic backups.
         """
 
-        if not privelege_test.test(interaction, config.priveleges.backup_privelege):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.backup_privelege))
+        if not privilege_test.test(interaction, config.privileges.backup_privilege):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.backup_privilege))
             return
 
         if self.auto_backup.is_running():
@@ -451,8 +451,8 @@ class BackupsCog(commands.Cog):
         Clean up the backup directory.
         """
 
-        if not privelege_test.test(interaction, config.priveleges.backup_privelege):
-            await interaction.response.send_message(privelege_test.reject_message(config.priveleges.backup_privelege))
+        if not privilege_test.test(interaction, config.privileges.backup_privilege):
+            await interaction.response.send_message(privilege_test.reject_message(config.privileges.backup_privilege))
             return
 
         await interaction.response.defer(thinking=True)
