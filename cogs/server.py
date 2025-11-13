@@ -257,7 +257,7 @@ class ServerCog(commands.Cog):
             )
             return
 
-        self.bot.tmux.console_pane.send_keys("C-c C-c C-c C-c C-c")  # Send SIGINT many times to the server process.
+        self.bot.tmux.console_pane.send_keys("c-c c-c c-c c-c c-c")  # Send SIGINT many times to the server process.
         await interaction.response.send_message("Server is being forcibly killed.")
 
 
