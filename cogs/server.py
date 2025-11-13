@@ -257,7 +257,7 @@ class ServerCog(commands.Cog):
             )
             return
 
-        self.bot.tmux.console_pane.send_keys("C-c C-c C-c C-c C-c")  # Send SIGINT to the server process.
+        self.bot.tmux.console_pane.send_keys("C-c C-c C-c C-c C-c")  # Send SIGINT many times to the server process.
         await interaction.response.send_message("Server is being forcibly killed.")
 
 
@@ -427,17 +427,17 @@ class ServerCog(commands.Cog):
 
         if server_process:
             self.bot.block_chat = False
+            self.bot.rcon.running = True
         else:
             self.bot.block_chat = True
+            self.bot.rcon.running = False
             # Server stopped!
             LOG.warn("Server stopped!")
             if self.stopping:
-                self.running = False
                 self.stopping = False
                 self.crash_count = 0
                 return  # Nothing to worry about!
 
-            self.running = False
             self.restart_lock = False
 
             # Check if the crash loop task is running

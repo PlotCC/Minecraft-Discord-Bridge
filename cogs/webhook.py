@@ -46,7 +46,7 @@ def setup_multi_action(callbacks, what_do: str):
 
 class WebhookCog(commands.Cog):
     def __init__(self, bot: DiscordBot):
-        self.bot = bot
+        self.bot: DiscordBot = bot
         self.f = None
 
 
@@ -249,6 +249,7 @@ class WebhookCog(commands.Cog):
         # Server starting action
         async def server_starting(match):
             LOG.info("Server starting, sending...")
+            self.bot.rcon.running = True
             await whb.on_server_starting()
 
 
@@ -265,6 +266,7 @@ class WebhookCog(commands.Cog):
         # Server started action
         async def server_started(match):
             LOG.info("Server started, sending...")
+            self.bot.rcon.running = True
             await whb.on_server_started()
 
 
@@ -281,6 +283,7 @@ class WebhookCog(commands.Cog):
         # Server stopping action
         async def server_stopping(match):
             LOG.info("Server stopping, sending...")
+            self.bot.rcon.running = False
             await whb.on_server_stopping()
 
 
