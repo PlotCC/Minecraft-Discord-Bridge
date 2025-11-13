@@ -257,8 +257,19 @@ class ServerCog(commands.Cog):
             )
             return
 
-        self.bot.tmux.console_pane.send_keys("c-c c-c c-c c-c c-c")  # Send SIGINT many times to the server process.
-        await interaction.response.send_message("Server is being forcibly killed.")
+        await interaction.response.send_message("Killing server (attempt 1/5)...")
+        for _attempt in range(5):
+            self.bot.tmux.console_pane.send_keys("c-c")  # Send SIGINT to the server process.
+            await interaction.edit_original_response(content=f"Killing server (attempt {_attempt + 1}/5)...")
+            await asyncio.sleep(3)
+
+            server_process = get_server_process()
+            if not server_process:
+                await interaction.edit_original_response(content="Server process killed successfully.")
+                self.bot.rcon.running = False
+                return
+        
+        await interaction.edit_original_response(content="Failed to kill server process after 5 attempts. You may need to wait, try again, or check the server console.")
 
 
 
