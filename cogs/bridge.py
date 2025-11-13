@@ -6,14 +6,18 @@ from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
 import config
 
-emoji_match = "<a?(:.*?:)\d*?>"
+emoji_match = r"<a?(:.*?:)\d*?>"
 def parse_emoji(content):
-    return emoji.demojize(re.sub(emoji_match, "\1", content))
+    return emoji.demojize(re.sub(emoji_match, r"\1", content))
+
+
 
 class BridgeCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    
+
+
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if self.bot.block_chat:
@@ -26,7 +30,8 @@ class BridgeCog(commands.Cog):
 
             if len(message.embeds) > 0:
                 embed_0 = message.embeds[0]
-                match = re.match("^:warning: (Automatic server restart in .+\.)$", embed_0.description)
+                desc = embed_0.description if embed_0.description else ""
+                match = re.match(r"^:warning: (Automatic server restart in .+\.)$", desc)
                 if match:
                     combined = tellraw.multiple_tellraw(
                         tellraw(text="["),
@@ -50,7 +55,7 @@ class BridgeCog(commands.Cog):
         if message.author.bot:
             return
                 
-        if message.channel.id != config.bot["channel_id"]:
+        if message.channel.id != config.bot.channel_id:
             return
         
         pre = None
@@ -99,7 +104,7 @@ class BridgeCog(commands.Cog):
             text = "] "
         )
         d = None
-        if config.webhook["insertion_available"]:
+        if config.webhook.insertion_available:
             d = tellraw(
                 text=message.author.display_name,
                 insertion=f"reply:{str(message.id)}:pingoff ",
@@ -161,7 +166,9 @@ class BridgeCog(commands.Cog):
             combined = tellraw.multiple_tellraw(pre, a, b, c, d, e)
         
         await self.bot.send_server_command("tellraw @a " + combined)
-    
+
+
+
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         if before.author == self.bot.user:
@@ -169,8 +176,8 @@ class BridgeCog(commands.Cog):
         
         if before.author.bot:
             return
-        
-        if before.channel.id != config.bot["channel_id"]:
+
+        if before.channel.id != config.bot.channel_id:
             return
     
         if before.content == after.content: # Catch embed "edits"
@@ -239,6 +246,8 @@ class BridgeCog(commands.Cog):
             )
         )
         await self.bot.send_server_command("tellraw @a " + combined)
-    
+
+
+
 async def setup(bot):
     await bot.add_cog(BridgeCog(bot))

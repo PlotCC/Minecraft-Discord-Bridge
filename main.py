@@ -8,6 +8,7 @@ from discord.ext import commands
 from discord import app_commands
 
 import config
+from discord_bot import DiscordBot, TmuxData
 
 path = pathlib.Path(__file__)
 BOT_SRC = str(path.parent.absolute())
@@ -19,7 +20,7 @@ if os.path.isfile("bot-latest.log"):
     os.rename("bot-latest.log", "bot-old.log")
 
 
-logging.basicConfig(level=config.bot["logging_level"])
+logging.basicConfig(level=config.bot.logging_level)
 handler = logging.FileHandler(filename="bot-latest.log", encoding="utf-8", mode="w")
 dt_fmt = '%Y-%m-%d %H:%M:%S'
 formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
@@ -32,45 +33,48 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 async def startup():
-    # Initialize the bot
-    bot = commands.Bot(
-        intents=intents,
-        command_prefix=commands.when_mentioned_or(config.bot["prefix"])
-    )
-
-    # Get the tmux server object.
-    Server = libtmux.Server()
-
     session = None
-    bot.session_existed = False
-
+    session_existed = False
+    Server = libtmux.Server()
     try:
         # Create a new session. This throws if a session exists already!
-        session = Server.new_session(config.tmux_data["tmux_session"])
+        session = Server.new_session(config.tmux_data.tmux_session, attach=False)
     except:
         LOG.info("tmux session already exists. Joining to it instead.")
         for _session in Server.sessions:
-            if _session.name == config.tmux_data["tmux_session"]:
+            if _session.name == config.tmux_data.tmux_session:
                 session = _session
-                bot.session_existed = True
+                session_existed = True
                 break
+    
+    if not session:
+        raise Exception("Failed to create or find tmux session. Is tmux installed and working?")
     
     if not session:
         raise Exception("Tmux session existed but also it did not. Weird.")
 
     # Get the main window.
     console_win = session.windows[0]
-    console_win.rename_window(config.tmux_data["window_name"])
+    console_win.rename_window(config.tmux_data.window_name)
     # Set the layout to look fancy.
 
-    if not bot.session_existed: # Only set the layout if it wasn't already set.
+    tmux_data = TmuxData(
+        session,
+        config.tmux_data.tmux_session,
+        console_win,
+        console_win.panes[0]
+    )
+
+    # Initialize the bot
+    bot = DiscordBot(
+        tmux_data,
+        intents=intents,
+        command_prefix=commands.when_mentioned_or(config.bot.prefix)
+    )
+    bot.tmux.session_existed = session_existed
+
+    if not session_existed: # Only set the layout if it wasn't already set.
         console_win.select_layout("main-vertical")
-
-    # Get the console window pane.
-    bot.console_pane = console_win.panes[0]
-
-    # Block chat until the server is confirmed online.
-    bot.block_chat = True
 
     async with bot:
         # Collect cogs and load them.
@@ -105,12 +109,13 @@ async def startup():
                 await interaction.response.send_message("An error occurred.", ephemeral=True)
                 raise error
         
-        bot.tree.on_error = on_tree_error
+
+        bot.tree.on_error = on_tree_error # type: ignore[reportAttributeAccessIssue] : This works, not sure why it's mad.
 
         # Start the bot
         LOG.info("Starting bot.")
-        
-        await bot.start(config.bot["token"])
+
+        await bot.start(config.bot.token)
 
 if __name__ == "__main__":
     asyncio.run(startup())
