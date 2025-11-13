@@ -12,6 +12,7 @@ import config
 from discord_bot import DiscordBot
 from rcon import Rcon
 import privilege_test
+from privilege_test import check_permissions
 
 LOG = logging.getLogger("SERVER-COMMANDS")
 
@@ -37,13 +38,11 @@ class ServerCommandsCog(commands.Cog):
     @app_commands.describe(
         reason="The reason for the lockout."
     )
+    @check_permissions(config.privileges.owner)
     async def lockout(self, interaction: discord.Interaction, reason: str) -> None:
         """
         Lockout the server.
         """
-        if not privilege_test.test(interaction, config.privileges.owner):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.owner))
-            return
 
         try:
             await interaction.response.defer(thinking=True)
@@ -85,13 +84,11 @@ class ServerCommandsCog(commands.Cog):
     @app_commands.describe(
         disable_whitelist="Disable the whitelist after unlocking."
     )
+    @check_permissions(config.privileges.owner)
     async def cancel_lockout(self, interaction: discord.Interaction, disable_whitelist: bool = False) -> None:
         """
         Unlock the server.
         """
-        if not privilege_test.test(interaction, config.privileges.owner):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.owner))
-            return
 
         try:
             await interaction.response.defer(thinking=True)
@@ -122,13 +119,11 @@ class ServerCommandsCog(commands.Cog):
     @app_commands.describe(
         username="The username of the player to whitelist."
     )
+    @check_permissions(config.privileges.user)
     async def whitelist(self, interaction: discord.Interaction, username: str) -> None:
         """
         Add a player to the whitelist.
         """
-        if not privilege_test.test(interaction, config.privileges.user):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.user))
-            return
 
         if self.locked_out:
             await interaction.response.send_message(f"Server is locked out: {self.locked_out_reason}")
@@ -151,10 +146,11 @@ class ServerCommandsCog(commands.Cog):
     @app_commands.command(
         name="list", description="Get a list of players that are currently online."
     )
+    @check_permissions(config.privileges.user)
     async def list(self, interaction: discord.Interaction) -> None:
-        if not privilege_test.test(interaction, config.privileges.user):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.user))
-            return
+        """
+        Get a list of players that are currently online.
+        """
 
         response, id = await self.rcon.send_server_command("list")
         await interaction.response.send_message(response)
@@ -165,13 +161,11 @@ class ServerCommandsCog(commands.Cog):
     @app_commands.describe(
         command="The command to run."
     )
+    @check_permissions(config.privileges.admin)
     async def custom_command(self, interaction: discord.Interaction, command: str) -> None:
         """
         Run a custom command.
         """
-        if not privilege_test.test(interaction, config.privileges.admin):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.admin))
-            return
 
         try:
             response, id = await self.rcon.send_server_command(command)
@@ -185,43 +179,44 @@ class ServerCommandsCog(commands.Cog):
     async def on_message(self, message: discord.Message):
         if message.author.bot:
             return
+        if message.channel.id != config.rcon.channel_id:
+            return
+        if message.content.strip() == "":
+            return
 
-        if message.channel.id == config.rcon.channel_id:
-            if message.content.strip() == "":
+        if message.content.startswith(config.rcon.command_prefix):
+            if not privilege_test.test(message, config.privileges.rcon_command_privilege):
+                await message.reply(privilege_test.reject_message(config.privileges.rcon_command_privilege))
                 return
-            if message.content.startswith(config.rcon.command_prefix):
-                if not privilege_test.test(message, config.privileges.rcon_command_privilege):
-                    await message.reply(privilege_test.reject_message(config.privileges.rcon_command_privilege))
-                    return
 
+            try:
+                command = message.content[len(config.rcon.command_prefix):].strip()
+                # Run the command.
+                response, id = await self.rcon.send_server_command(command)
+
+                if response is None or response == "":
+                    response = "Command executed successfully. Or not. There was no response."
+
+                # Send the response as a reply to the message.
+                await message.reply(response)
+            except Exception as e:
+                await message.reply(f"Failed to send command to server: {e}")
+        elif message.content.startswith(config.rcon.meta_command_prefix):
+            if not privilege_test.test(message, config.privileges.rcon_meta_command_privilege):
+                await message.reply(privilege_test.reject_message(config.privileges.rcon_meta_command_privilege))
+                return
+
+            command = message.content[len(config.rcon.meta_command_prefix):].strip()
+
+            if command.lower() == "reconnect":
                 try:
-                    command = message.content[len(config.rcon.command_prefix):].strip()
-                    # Run the command.
-                    response, id = await self.rcon.send_server_command(command)
-
-                    if response is None or response == "":
-                        response = "Command executed successfully. Or not. There was no response."
-
-                    # Send the response as a reply to the message.
-                    await message.reply(response)
+                    await self.rcon.instance.close()
+                    await self.rcon.instance.connect()
+                    await message.reply("Reconnected to RCON server.")
                 except Exception as e:
-                    await message.reply(f"Failed to send command to server: {e}")
-            elif message.content.startswith(config.rcon.meta_command_prefix):
-                if not privilege_test.test(message, config.privileges.rcon_meta_command_privilege):
-                    await message.reply(privilege_test.reject_message(config.privileges.rcon_meta_command_privilege))
-                    return
-
-                command = message.content[len(config.rcon.meta_command_prefix):].strip()
-
-                if command.lower() == "reconnect":
-                    try:
-                        await self.rcon.instance.close()
-                        await self.rcon.instance.connect()
-                        await message.reply("Reconnected to RCON server.")
-                    except Exception as e:
-                        await message.reply(f"Failed to reconnect to RCON server: {e}")
-                else:
-                    await message.reply(f"Unknown meta-command: {command}")
+                    await message.reply(f"Failed to reconnect to RCON server: {e}")
+            else:
+                await message.reply(f"Unknown meta-command: {command}")
 
 
 

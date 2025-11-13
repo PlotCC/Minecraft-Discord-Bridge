@@ -10,7 +10,7 @@ from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
 import config
 from discord_bot import DiscordBot
-import privilege_test
+from privilege_test import check_permissions
 
 LOG = logging.getLogger("BACKUP")
 
@@ -331,15 +331,12 @@ class BackupsCog(commands.Cog):
 
 
     @app_commands.command(name="backup-now", description="Backup the minecraft server right now.")
+    @check_permissions(config.privileges.backup_privilege)
     async def backup_now(self, interaction: discord.Interaction, fake_hourly: bool=False) -> None:
         """
         Backup the minecraft server right now.
         """
         await interaction.response.defer(thinking=True)
-
-        if not privilege_test.test(interaction, config.privileges.backup_privilege):
-            await interaction.followup.send(privilege_test.reject_message(config.privileges.backup_privilege))
-            return
 
         if fake_hourly:
             await self._auto_backup()
@@ -363,15 +360,12 @@ class BackupsCog(commands.Cog):
 
 
     @app_commands.command(name="list-backups", description="List all backups.")
+    @check_permissions(config.privileges.backup_privilege)
     async def list_backups(self, interaction: discord.Interaction) -> None:
         """
         List all backups.
         """
         await interaction.response.defer(thinking=True)
-
-        if not privilege_test.test(interaction, config.privileges.backup_privilege):
-            await interaction.followup.send(privilege_test.reject_message(config.privileges.backup_privilege))
-            return
 
         try:
             hourly, daily, weekly, others = self.get_backups()
@@ -408,15 +402,11 @@ class BackupsCog(commands.Cog):
 
 
     @app_commands.command(name="stop-backups", description="Stop automatic backups.")
-    @app_commands.checks.cooldown(1, 180.0)
+    @check_permissions(config.privileges.backup_privilege)
     async def stop_backups(self, interaction: discord.Interaction) -> None:
         """
         Stop automatic backups.
         """
-
-        if not privilege_test.test(interaction, config.privileges.backup_privilege):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.backup_privilege))
-            return
 
         if not self.auto_backup.is_running():
             await interaction.response.send_message("Automatic backups are not running.", ephemeral=True)
@@ -427,15 +417,11 @@ class BackupsCog(commands.Cog):
 
 
     @app_commands.command(name="start-backups", description="Start automatic backups.")
-    @app_commands.checks.cooldown(1, 180.0)
+    @check_permissions(config.privileges.backup_privilege)
     async def start_backups(self, interaction: discord.Interaction) -> None:
         """
         Start automatic backups.
         """
-
-        if not privilege_test.test(interaction, config.privileges.backup_privilege):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.backup_privilege))
-            return
 
         if self.auto_backup.is_running():
             await interaction.response.send_message("Automatic backups are already running.", ephemeral=True)
@@ -446,14 +432,11 @@ class BackupsCog(commands.Cog):
 
 
     @app_commands.command(name="cleanup-backups", description="Clean up the backup directory. This is mostly for debugging purposes.")
+    @check_permissions(config.privileges.backup_privilege)
     async def cleanup_backups_command(self, interaction: discord.Interaction, wipe_others: bool=False) -> None:
         """
         Clean up the backup directory.
         """
-
-        if not privilege_test.test(interaction, config.privileges.backup_privilege):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.backup_privilege))
-            return
 
         await interaction.response.defer(thinking=True)
         await self.cleanup_backups()

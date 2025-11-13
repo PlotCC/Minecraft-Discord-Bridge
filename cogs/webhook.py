@@ -12,7 +12,7 @@ from discord_bot import DiscordBot
 from webhook_bridge import Bridge
 from webhook_actions import open_latest_log, need_log_reopen, regex_action, multi_regex_action, action_list
 import config
-import privilege_test
+from privilege_test import check_permissions
 
 LOG = logging.getLogger("WEBHOOK_COG")
 
@@ -70,10 +70,13 @@ class WebhookCog(commands.Cog):
         app_commands.Choice(name="list-actions", value=11),
         app_commands.Choice(name="not_whitelisted", value=12),
     ])
+    @check_permissions(config.privileges.admin)
     async def actions(self, interaction: discord.Interaction, action: app_commands.Choice[int], enabled: typing.Optional[bool]=None) -> None:
-        if not privilege_test.test(interaction, config.privileges.admin):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.admin))
-            return
+        """
+        Toggle a webhook action, allows to disable things like player join/leave events or etc.
+
+        This is temporary until the bot restarts.
+        """
         
         LOG.info(f"Action [{action.name} ({action.value}) -> {enabled}] requested by {interaction.user.name}#{interaction.user.discriminator}.")
         if action.value == 10:
@@ -96,12 +99,13 @@ class WebhookCog(commands.Cog):
 
     @app_commands.command(
         name="reset_log",
-        description="Force the webhook to reopen the latest.log file.",
+        description="Fix ingame messages not appearing in Discord by reopening the latest.log file.",
     )
+    @check_permissions(config.privileges.moderator)
     async def reset_log(self, interaction: discord.Interaction) -> None:
-        if not privilege_test.test(interaction, config.privileges.moderator):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.moderator))
-            return
+        """
+        Force the webhook to reopen the latest.log file.
+        """
         
         self.f = open_latest_log()
         await interaction.response.send_message("Reopened latest.log file.")
