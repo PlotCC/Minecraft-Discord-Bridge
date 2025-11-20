@@ -488,7 +488,7 @@ class ServerCog(commands.Cog):
             await asyncio.sleep(1)  # Hopefully this is enough for the task to stop?
             self.check_crash_loop.start()
 
-            if self.crash_count >= 5:
+            if self.crash_count >= 5 and not self.crash_lock:
                 LOG.error("Server crashed 5 times in a row, not restarting.")
                 self.restart_lock = True
                 self.crash_lock = True
