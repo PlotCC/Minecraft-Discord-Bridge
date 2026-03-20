@@ -370,7 +370,10 @@ class ServerCog(commands.Cog):
 
             if self.restart_time <= -1:
                 self.automatic_restart_task.stop() # type: ignore[reportAttributeAccessIssue] .stop() exists.
-                await stop_server(self.bot)
+                try:
+                    await stop_server(self.bot)
+                except:
+                    pass # We don't particularly care, the only exception that occurs is if the server is already stopped.
                 self.running = False
                 
                 # Check every 5 seconds for 2 minutes to see if the server has stopped.
@@ -410,7 +413,10 @@ class ServerCog(commands.Cog):
 
                 if not self.running:
                     LOG.info("Server automatically starting up.")
-                    start_server(self.bot)
+                    try:
+                        start_server(self.bot)
+                    except:
+                        pass # We don't particularly care, the only exception that occurs is if the server is already started.
                     self.running = True
 
                 self.restart_lock = False
@@ -469,7 +475,6 @@ class ServerCog(commands.Cog):
             # Server stopped!
             LOG.warn("Server stopped!")
             if self.stopping:
-                self.stopping = False
                 self.crash_count = 0
                 return  # Nothing to worry about!
 
