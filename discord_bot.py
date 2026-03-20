@@ -1,18 +1,62 @@
 # Custom class discord bot.
 
-import discord
 from discord.ext import commands
 from discord import VoiceChannel, StageChannel, ForumChannel, TextChannel, CategoryChannel, Thread
 from discord.abc import PrivateChannel
 from typing import Union, Optional
 import libtmux
+import traceback
 
+from privilege_level import PrivilegeLevel
+from privilege_test import InsufficientPrivilegeException
 from rcon import Rcon
 from webhook_bridge import Bridge
 
 VocalGuildChannel = Union[VoiceChannel, StageChannel]
 GuildChannel = Union[VocalGuildChannel, ForumChannel, TextChannel, CategoryChannel]
 Channel = Optional[Union[GuildChannel, Thread, PrivateChannel]]
+
+
+class LockData:
+    """
+    Class to hold lock-related data.
+    """
+
+    def __init__(self):
+        self.commands_locked: bool = False
+        self.lock_reason: Optional[str] = None
+        self.locked_by: Optional[int] = None  # User ID of the person who locked commands.
+        self.lock_level: Optional[PrivilegeLevel] = None  # Privilege level required to bypass lock.
+
+
+
+class Administration:
+    """
+    Class to hold administration-related data.
+    """
+
+    def __init__(self):
+        self.lock: LockData = LockData()
+
+
+
+    def test(self, user_level: PrivilegeLevel) -> bool:
+        """
+        Test if the current lock allows a user with the given privilege level to use commands.
+
+        Args:
+            user_level (PrivilegeLevel): The privilege level of the user.
+
+        Returns:
+            bool: True if the user can use commands, False otherwise.
+        """
+        if not self.lock.commands_locked:
+            return True
+        if self.lock.lock_level is None:
+            return False
+        return user_level >= self.lock.lock_level
+
+
 
 class Channels:
     """
@@ -95,8 +139,23 @@ class DiscordBot(commands.Bot):
 
     def __init__(self, tmux_data: TmuxData, **options):
         super().__init__(**options)
-        self.block_chat = True  # Initially block chat until server is confirmed online.
-        self.tmux = tmux_data
-        self.players_online = 0  # Track number of players online.
-        self.channels = Channels()
-        self.rcon = RconData(self)
+        self.block_chat: bool = True  # Initially block chat until server is confirmed online.
+        self.tmux: TmuxData = tmux_data
+        self.players_online: int = 0  # Track number of players online.
+        self.channels: Channels = Channels()
+        self.rcon: RconData = RconData(self)
+        self.administration: Administration = Administration()
+    
+
+    async def on_command_error(self, context: commands.Context, exception: Exception) -> None:
+        """
+        Handle command errors globally.
+        """
+        if isinstance(exception, commands.CommandOnCooldown):
+            await context.send(f"This command is on cooldown. Try again in {exception.retry_after:.2f} seconds.")
+        elif isinstance(exception, commands.MissingPermissions) or isinstance(exception, commands.CheckFailure):
+            await context.send("You do not have permission to use this command.") 
+        elif isinstance(exception, InsufficientPrivilegeException):
+            await context.send(str(exception))
+        else:
+            await context.send(f"An error occurred while processing the command: ```\n{traceback.format_exc()}\n```")

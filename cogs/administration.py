@@ -5,13 +5,14 @@ import logging
 
 import config
 from discord_bot import DiscordBot
+from privilege_test import check_permissions
 
 LOG = logging.getLogger("BACKUP")
 
 
-class AboutCog(commands.Cog):
+class AdministrationCog(commands.Cog):
     """
-    This cog allows users to get information about themselves in the context of the bot.
+    This cog adds administration commands to the bot.
     """
 
     def __init__(self, bot: DiscordBot):
@@ -23,6 +24,7 @@ class AboutCog(commands.Cog):
         name="about-me",
         description="Get information about yourself in the context of the bot."
     )
+    @check_permissions(config.privileges.user)
     async def about_me(self, interaction: discord.Interaction) -> None:
         user_definitions = config.privileges.users
         user_id = interaction.user.id
@@ -39,6 +41,16 @@ class AboutCog(commands.Cog):
             inline=False
         )
         await interaction.response.send_message(embed=embed)
+
+
+
+    @app_commands.command(
+        name="lock-commands",
+        description="Lock all commands to prevent their use. Only applies to people of lower privilege than you."
+    )
+    @check_permissions(config.privileges.moderator)
+    async def lock_commands(self, interaction: discord.Interaction) -> None:
+        await interaction.response.send_message("This command is not yet implemented.")
 
 
 
@@ -59,4 +71,4 @@ class AboutCog(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(AboutCog(bot))
+    await bot.add_cog(AdministrationCog(bot))

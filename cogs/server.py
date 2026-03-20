@@ -9,7 +9,7 @@ from discord_bot import DiscordBot
 from rcon import Rcon
 import config
 from utilities.parse_tmux_pid import get_tmux_pid
-import privilege_test
+from privilege_test import check_permissions
 
 LOG = logging.getLogger("MC-SERVER")
 
@@ -69,6 +69,10 @@ def get_countdown_message(time: int):
 
 
 def get_time_after(time: datetime.time, seconds: int) -> datetime.time:
+    """
+    Get the time after adding the given seconds to the given time.
+    """
+
     hour = time.hour
     minute = time.minute
     second = time.second
@@ -124,10 +128,11 @@ class ServerCog(commands.Cog):
     @app_commands.command(
         name="shutdown", description="Shut down the Minecraft server."
     )
+    @check_permissions(config.privileges.server_control_privilege)
     async def shutdown(self, interaction: discord.Interaction) -> None:
-        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
-            return
+        """
+        Shut down the server.
+        """
 
         if self.running:
             await stop_server(self.bot)
@@ -145,10 +150,11 @@ class ServerCog(commands.Cog):
 
 
     @app_commands.command(name="startup", description="Start up the Minecraft server.")
+    @check_permissions(config.privileges.server_control_privilege)
     async def startup(self, interaction: discord.Interaction) -> None:
-        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
-            return
+        """
+        Start up the server.
+        """
 
         if not self.running:
             if self.crash_lock:
@@ -174,10 +180,11 @@ class ServerCog(commands.Cog):
     @app_commands.command(
         name="cancel-restart", description="Cancel the current restart timer."
     )
+    @check_permissions(config.privileges.server_control_privilege)
     async def cancel_restart_cmd(self, interaction: discord.Interaction) -> None:
-        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
-            return
+        """
+        Cancel the current restart timer.
+        """
 
         if self.restart_time == 0:
             await interaction.response.send_message(
@@ -199,12 +206,13 @@ class ServerCog(commands.Cog):
     @app_commands.describe(
         count="The amount of restarts to skip, defaults to a single restart."
     )
+    @check_permissions(config.privileges.server_control_privilege)
     async def skip_restart_cmd(
         self, interaction: discord.Interaction, count: int = 1
     ) -> None:
-        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
-            return
+        """
+        Skip the next <n> server restarts. Defaults to 1.
+        """
 
         self.skip_restart = count
         await interaction.response.send_message(
@@ -220,12 +228,13 @@ class ServerCog(commands.Cog):
     @app_commands.describe(
         time="The amount of time to delay the restart by. This will override the current restart timer, if one is running."
     )
+    @check_permissions(config.privileges.server_control_privilege)
     async def queue_restart(
         self, interaction: discord.Interaction, time: int = 3601
     ) -> None:
-        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
-            return
+        """
+        Queue a restart in <seconds> time. Defaults to one hour time (3600 seconds).
+        """
 
         self.restart_time = time + 1
         if not self.automatic_restart_task.is_running():
@@ -245,10 +254,11 @@ class ServerCog(commands.Cog):
         name="kill",
         description="Forcibly kill the Minecraft server process.",
     )
+    @check_permissions(config.privileges.server_control_privilege)
     async def kill_server(self, interaction: discord.Interaction) -> None:
-        if not privilege_test.test(interaction, config.privileges.server_control_privilege):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.server_control_privilege))
-            return
+        """
+        Forcibly kill the server process.
+        """
         
         if (datetime.datetime.now() - self.kill_confirm_timestamp).total_seconds() > 30:
             self.kill_confirm_timestamp = datetime.datetime.now()
@@ -281,10 +291,11 @@ class ServerCog(commands.Cog):
         description="Mark the server as online or offline, useful if server module is reloaded.",
     )
     @app_commands.describe(online="The server state.")
+    @check_permissions(config.privileges.owner)
     async def set_state(self, interaction: discord.Interaction, online: bool) -> None:
-        if not privilege_test.test(interaction, config.privileges.owner):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.owner))
-            return
+        """
+        Mark the server as online or offline, useful if server module is reloaded.
+        """
 
         self.running = online
         await interaction.response.send_message(
@@ -301,10 +312,11 @@ class ServerCog(commands.Cog):
         name="unlock",
         description="Unlock the server startup after being stuck in a crash loop.",
     )
+    @check_permissions(config.privileges.admin)
     async def unlock(self, interaction: discord.Interaction) -> None:
-        if not privilege_test.test(interaction, config.privileges.admin):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.admin))
-            return
+        """
+        Unlock the server startup after being stuck in a crash loop.
+        """
 
         self.crash_lock = False
         self.crash_count = 0
@@ -318,13 +330,22 @@ class ServerCog(commands.Cog):
         name="reboot-schedule",
         description="Display the automatic restart schedule of the Minecraft server.",
     )
+    @check_permissions(config.privileges.user)
     async def reboot_schedule(self, interaction: discord.Interaction) -> None:
-        if not privilege_test.test(interaction, config.privileges.user):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.user))
-            return
+        """
+        Display the automatic restart schedule of the Minecraft server.
+        """
+
+        restart_time_obj = get_time_after(config.server.restart_time, config.server.restart_delay)
+        # Build a datetime for today at that time. If the time is timezone-aware, that tz will be preserved.
+        dt = datetime.datetime.combine(datetime.date.today(), restart_time_obj)
+        if dt.tzinfo is None:
+            # Fallback: treat naive times as UTC
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+        utc_ts = int(dt.astimezone(datetime.timezone.utc).timestamp())
 
         await interaction.response.send_message(
-            f"Server restart begins at {config.server.restart_time} (Timezone: {config.server.restart_time.tzinfo.tzname if config.server.restart_time.tzinfo is not None else 'Unknown'}), delay is {config.server.restart_delay} seconds.",
+            f"Server restart begins at {config.server.restart_time} (Timezone: {config.server.restart_time.tzinfo.tzname if config.server.restart_time.tzinfo is not None else 'Unknown'}), delay is {config.server.restart_delay} seconds.\nNext restart is <t:{utc_ts}:R>.",
             ephemeral=True,
         )
 
@@ -349,7 +370,10 @@ class ServerCog(commands.Cog):
 
             if self.restart_time <= -1:
                 self.automatic_restart_task.stop() # type: ignore[reportAttributeAccessIssue] .stop() exists.
-                await stop_server(self.bot)
+                try:
+                    await stop_server(self.bot)
+                except:
+                    pass # We don't particularly care, the only exception that occurs is if the server is already stopped.
                 self.running = False
                 
                 # Check every 5 seconds for 2 minutes to see if the server has stopped.
@@ -389,7 +413,10 @@ class ServerCog(commands.Cog):
 
                 if not self.running:
                     LOG.info("Server automatically starting up.")
-                    start_server(self.bot)
+                    try:
+                        start_server(self.bot)
+                    except:
+                        pass # We don't particularly care, the only exception that occurs is if the server is already started.
                     self.running = True
 
                 self.restart_lock = False
@@ -448,7 +475,6 @@ class ServerCog(commands.Cog):
             # Server stopped!
             LOG.warn("Server stopped!")
             if self.stopping:
-                self.stopping = False
                 self.crash_count = 0
                 return  # Nothing to worry about!
 
@@ -467,7 +493,7 @@ class ServerCog(commands.Cog):
             await asyncio.sleep(1)  # Hopefully this is enough for the task to stop?
             self.check_crash_loop.start()
 
-            if self.crash_count >= 5:
+            if self.crash_count >= 5 and not self.crash_lock:
                 LOG.error("Server crashed 5 times in a row, not restarting.")
                 self.restart_lock = True
                 self.crash_lock = True

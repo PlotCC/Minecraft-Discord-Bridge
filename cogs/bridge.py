@@ -5,6 +5,7 @@ from discord.ext import commands
 from minecraftTellrawGenerator import MinecraftTellRawGenerator as tellraw
 
 import config
+from discord_bot import DiscordBot
 
 emoji_match = r"<a?(:.*?:)\d*?>"
 def parse_emoji(content):
@@ -13,8 +14,8 @@ def parse_emoji(content):
 
 
 class BridgeCog(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, bot: DiscordBot):
+        self.bot: DiscordBot = bot
 
 
 
@@ -39,7 +40,7 @@ class BridgeCog(commands.Cog):
                         tellraw(text="] "),
                         tellraw(text=match.group(1),color="yellow")
                     )
-                    await self.bot.send_server_command("tellraw @a " + combined)
+                    await self.bot.rcon.send_server_command("tellraw @a " + combined)
                     return
             if message.content == "Server restart will be cancelled.":
                 combined = tellraw.multiple_tellraw(
@@ -48,7 +49,7 @@ class BridgeCog(commands.Cog):
                     tellraw(text="] "),
                     tellraw(text="Server restart will be cancelled.",color="orange")
                 )
-                await self.bot.send_server_command("tellraw @a " + combined)
+                await self.bot.rcon.send_server_command("tellraw @a " + combined)
                 return
             return
         
@@ -66,9 +67,10 @@ class BridgeCog(commands.Cog):
                 message_author = message.reference.cached_message.author
                 message_content = message.reference.cached_message.content
             else:
-                message_data = await self.bot.bridge_channel.fetch_message(message.reference.message_id)
-                message_author = message_data.author
-                message_content = message_data.content
+                if message.reference.message_id is not None:
+                    message_data = await self.bot.channels.bridge.fetch_message(message.reference.message_id)
+                    message_author = message_data.author
+                    message_content = message_data.content
 
             pre = tellraw.multiple_tellraw(
                 tellraw(
@@ -165,7 +167,7 @@ class BridgeCog(commands.Cog):
         else:
             combined = tellraw.multiple_tellraw(pre, a, b, c, d, e)
         
-        await self.bot.send_server_command("tellraw @a " + combined)
+        await self.bot.rcon.send_server_command("tellraw @a " + combined)
 
 
 
@@ -245,7 +247,7 @@ class BridgeCog(commands.Cog):
                 color="gold"
             )
         )
-        await self.bot.send_server_command("tellraw @a " + combined)
+        await self.bot.rcon.send_server_command("tellraw @a " + combined)
 
 
 

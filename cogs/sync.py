@@ -5,7 +5,7 @@ import logging
 
 import config
 from discord_bot import DiscordBot
-import privilege_test
+from privilege_test import check_permissions
 
 LOG = logging.getLogger("SYNC")
 
@@ -18,14 +18,11 @@ class SyncCog(commands.Cog):
 
 
     @app_commands.command(name="resync", description="Properly re-synchronize the command tree, deleting old commands as well.")
+    @check_permissions(config.privileges.owner)
     async def resync(self, interaction: discord.Interaction) -> None:
         """
         Properly re-synchronize the command tree, deleting old commands as well.
         """
-
-        if not privilege_test.test(interaction, config.privileges.owner):
-            await interaction.response.send_message(privilege_test.reject_message(config.privileges.owner))
-            return
 
         LOG.info("Resyncing command tree...")
 
